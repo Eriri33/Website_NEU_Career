@@ -1,41 +1,40 @@
 # Kế hoạch 1 tuần — Career Connect
 
 ## Luồng nghiệp vụ MVP
-Doanh nghiệp đăng ký → admin/moderator duyệt doanh nghiệp → doanh nghiệp tạo tin → admin/moderator duyệt tin → sinh viên tìm kiếm và ứng tuyển → doanh nghiệp cập nhật trạng thái → sinh viên xem kết quả.
+Doanh nghiệp đăng ký → admin/moderator duyệt doanh nghiệp → doanh nghiệp tạo tin → admin/moderator duyệt tin → guest/student tìm và lọc → student ứng tuyển → business tìm/lọc ứng viên và cập nhật trạng thái → student theo dõi trạng thái.
 
-## Phân công
-### Người 1 — Sinh viên
-- CRUD phù hợp cho hồ sơ sinh viên; quản lý CV (tải lên, xem danh sách, tải xuống, xóa).
-- Tìm kiếm/lọc/chi tiết tin; gợi ý việc làm theo ngành/kỹ năng (nếu kịp).
-- Tạo, xem, sửa lời nhắn và rút đơn ứng tuyển; theo dõi trạng thái.
-- UI, kiểm thử quyền dữ liệu của sinh viên.
+## Module và phân công
 
-### Người 2 — Doanh nghiệp và tuyển dụng
-- Xem/cập nhật hồ sơ doanh nghiệp.
-- CRUD tin tuyển dụng: tạo, xem, cập nhật, đóng tin; kiểm tra quyền sở hữu.
-- Xem ứng viên của các tin thuộc doanh nghiệp; cập nhật trạng thái đơn.
-- UI và kiểm thử dữ liệu doanh nghiệp.
+### TV1 — Public Discovery + Student Journey (FE + BE)
+- Trang guest/student tìm việc theo `docs/SEARCH_UI_SPEC.md`: query, location, category multi-select, job type, major/skills, Saturday policy, posted date, sort.
+- Search bar, suggestion dropdown, category counts, results/detail, no-result/error/loading states, clear/save filters (localStorage).
+- Hồ sơ/CV, ứng tuyển, tìm/lọc lịch sử đơn và theo dõi trạng thái.
+- Endpoint owner: `/api/jobs*`, `/api/students/*`, `/api/applications/*`, public `/api/career-contents*`.
 
-### Người 3 — Nền tảng, Admin, kiểm duyệt
-- Flask app, SQLite, schema, Git và API contract.
-- Đăng ký/đăng nhập/đăng xuất/đổi email/đổi mật khẩu/vô hiệu hóa tài khoản; phân quyền.
-- Duyệt doanh nghiệp/tin và lưu lịch sử duyệt.
-- CRUD quản trị tài khoản, danh mục tin và bài viết hướng nghiệp.
-- Tích hợp, Postman, dữ liệu demo và hướng dẫn chạy.
+### TV2 — Business Recruitment Journey (FE + BE)
+- Hồ sơ doanh nghiệp.
+- CRUD tin tuyển dụng: tạo/xem/sửa/đóng tin; search/filter tin của mình.
+- Xem chi tiết và tìm/lọc ứng viên theo keyword/job/status; cập nhật trạng thái đơn.
+- Endpoint owner: `/api/company/*`.
+
+### TV3 — Platform + Staff/Admin + Integration (FE + BE)
+- Flask/SQLite/schema/migration/demo seed, auth/session/role guards.
+- Dashboard moderation và tìm/lọc doanh nghiệp/tin chờ duyệt; review history.
+- Admin user/category/content CRUD kèm query filters; login/register và navigation theo role.
+- Endpoint owner: `/api/auth/*`, `/api/admin/*`; chịu trách nhiệm integration nhưng không kiểm thử thay TV1/TV2.
 
 ## Lịch
-- Ngày 1: Chốt schema/API, tạo repo; chạy được app và init-db.
-- Ngày 2: Auth/role; các thành viên bắt đầu module.
-- Ngày 3: Profile, job CRUD, admin moderation/category/content CRUD.
-- Ngày 4: Applications CRUD theo quy tắc; tích hợp các module.
-- Ngày 5: Luồng nghiệp vụ end-to-end phải chạy.
-- Ngày 6: Kiểm thử phân quyền, trường hợp sai, sửa lỗi.
-- Ngày 7: Đóng băng code, demo, tài liệu và báo cáo.
+- Ngày 1: Chốt contract/schema, repo/branch, trang khung; chạy app/init-db được.
+- Ngày 2: Auth/core và search UI skeleton; mỗi module phát triển đồng thời.
+- Ngày 3: Job search API + filters, company job CRUD/search, admin review/search.
+- Ngày 4: Apply/tracking, applicant search/status; nối FE thật vào API.
+- Ngày 5: Chạy end-to-end và giải quyết merge conflicts/API mismatches.
+- Ngày 6: Test query filters kết hợp, ownership, status, dữ liệu rỗng; sửa lỗi.
+- Ngày 7: Freeze code, test trên máy demo, tài khoản/data demo, báo cáo.
 
-## Quyết định thiết kế
-- CRUD đầy đủ ở những thực thể phù hợp.
-- Với tin tuyển dụng, thao tác DELETE thực chất đóng tin để lưu lịch sử.
-- Với đơn ứng tuyển, DELETE thực chất rút đơn; không xóa cứng.
-- Với tài khoản, DELETE là vô hiệu hóa; lịch sử đơn/duyệt vẫn được giữ.
-- Lịch sử duyệt chỉ có Read, không có Update/Delete nhằm giữ tính toàn vẹn audit.
-- Không làm chatbot AI, email tự động, phỏng vấn video, thanh toán hoặc giao diện phức tạp trong MVP.
+## Các quyết định bắt buộc
+- Contract trước; BE/FE có thể làm song song sau khi request/response đã thống nhất.
+- Tìm kiếm/lọc phải query dữ liệu thực; không tạo filter UI giả.
+- Delete job = close, delete application = withdraw, delete account = deactivate.
+- Không làm chatbot AI, email tự động, phỏng vấn video, ATS/payment trong MVP.
+- Nếu trễ, cắt P2/hiệu ứng; không cắt public search/filter và luồng tuyển dụng.
