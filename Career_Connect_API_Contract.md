@@ -1,4 +1,4 @@
-# CAREER CONNECT — API CONTRACT
+# API_CONTRACT.md
 
 **Phiên bản:** 1.0  
 **Mục đích:** Quy ước giao tiếp thống nhất giữa frontend và backend, đồng thời là hợp đồng làm việc giữa các thành viên.  
