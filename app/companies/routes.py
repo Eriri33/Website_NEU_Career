@@ -90,12 +90,13 @@ def create_job():
     try:
         cur = db.execute("""
             INSERT INTO jobs (company_id, category_id, title, description, location, job_type,
-                major_required, skills_required, deadline, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                major_required, skills_required, salary_text, saturday_policy, deadline, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         """, (company["id"], data.get("category_id") or None, data["title"].strip(), data["description"].strip(),
               (data.get("location") or "").strip(), data.get("job_type") or "internship",
-              (data.get("major_required") or "").strip(), (data.get("skills_required") or "").strip(),
-              data.get("deadline") or None))
+               (data.get("major_required") or "").strip(), (data.get("skills_required") or "").strip(),
+               (data.get("salary_text") or "").strip(), data.get("saturday_policy") or "unknown",
+               data.get("deadline") or None))
         db.commit()
     except sqlite3.IntegrityError:
         db.rollback()

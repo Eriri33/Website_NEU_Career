@@ -1,17 +1,273 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Career Connect</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEU Career Connect — Tìm việc & Thực tập</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <main class="container">
-    <h1>Career Connect</h1>
-    <p>Website kết nối doanh nghiệp với sinh viên và hỗ trợ hướng nghiệp.</p>
-    <p class="status">Backend đang hoạt động.</p>
-    <p>Kiểm tra API: <code>/api/health</code></p>
-  </main>
+<!-- ==================== HEADER ==================== -->
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav>
+      <a href="#hero-section">Trang chủ</a>
+      <a href="#jobs">Tìm việc</a>
+      <a href="#career">Hướng nghiệp</a>
+      <a href="#student" id="studentLink" hidden>Hồ sơ của tôi</a>
+    </nav>
+    <div class="nav-actions">
+      <span id="sessionLabel"></span>
+      <a class="btn btn-outline" id="authButton" href="{{ url_for('login_page') }}">Đăng nhập</a>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== HERO + SEARCH BAR ==================== -->
+<main>
+<section class="hero" id="hero-section">
+  <div class="hero-bg"></div>
+  <div class="wrap hero-content">
+    <div class="hero-badge">
+      <img src="{{ url_for('static', filename='assets/Bieu-tuong-1-1-scaled.webp') }}" alt="NEU Logo" class="hero-logo">
+    </div>
+    <p class="eyebrow">CAREER CONNECT · ĐẠI HỌC KINH TẾ QUỐC DÂN</p>
+    <h1>Tìm công việc phù hợp<br><em>với tương lai của bạn.</em></h1>
+    <p class="hero-copy">Khám phá cơ hội thực tập và việc làm chất lượng từ các doanh nghiệp uy tín, dành riêng cho sinh viên NEU.</p>
+
+    <form class="searchbar" id="searchForm" autocomplete="off">
+      <select id="heroCategory">
+        <option value="">Tất cả ngành nghề</option>
+      </select>
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="query" placeholder="Vị trí tuyển dụng, kỹ năng..." autocomplete="off">
+      </div>
+      <div class="search-input-wrap">
+        <span class="search-icon">📍</span>
+        <input id="location" placeholder="Địa điểm" autocomplete="off">
+      </div>
+      <button class="clear-search" type="button" id="clearSearch" title="Xóa ô tìm kiếm">×</button>
+      <button class="btn btn-primary search-btn" type="submit">Tìm kiếm <span>⌕</span></button>
+    </form>
+
+    <!-- Suggestion dropdown -->
+    <div class="suggestions" id="suggestions" hidden>
+      <div>
+        <h4>🔥 Từ khóa phổ biến</h4>
+        <div id="keywordSuggestions" class="keyword-list"></div>
+      </div>
+      <div>
+        <h4>💼 Việc làm có thể bạn quan tâm</h4>
+        <div id="jobSuggestions" class="mini-jobs"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="wrap">
+      <div class="stat-row" id="heroStats">
+        <div class="stat-item"><span class="stat-num" id="statJobs">0</span><span class="stat-label">Việc làm đang tuyển</span></div>
+        <div class="stat-item"><span class="stat-num" id="statCategories">0</span><span class="stat-label">Ngành nghề</span></div>
+        <div class="stat-item"><span class="stat-num" id="statCompanies">0</span><span class="stat-label">Doanh nghiệp</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== DANH MỤC PHỔ BIẾN ==================== -->
+<section class="wrap categories-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow blue">KHÁM PHÁ CƠ HỘI</p>
+      <h2>Thử lựa chọn ngay các nghề hot</h2>
+    </div>
+    <a href="#jobs" class="text-link">Xem tất cả →</a>
+  </div>
+  <div id="categories" class="category-grid">
+    <div class="loading">Đang tải danh mục…</div>
+  </div>
+</section>
+
+<!-- ==================== JOB SEARCH + RESULTS ==================== -->
+<section class="wrap discovery" id="jobs">
+  <aside class="filters">
+    <div class="filter-head">
+      <h3>🔎 Bộ lọc tìm kiếm</h3>
+      <button id="resetFilters" class="text-button">Xóa lọc</button>
+    </div>
+
+    <label class="field-label">Danh mục nghề</label>
+    <div id="categoryFilters" class="check-list"></div>
+
+    <label class="field-label">Loại công việc</label>
+    <select id="jobType">
+      <option value="">Tất cả loại việc</option>
+      <option value="internship">Thực tập</option>
+      <option value="full_time">Toàn thời gian</option>
+      <option value="part_time">Bán thời gian</option>
+      <option value="contract">Hợp đồng</option>
+    </select>
+
+    <label class="field-label">Ngành học phù hợp</label>
+    <input id="major" placeholder="VD: Marketing, CNTT">
+
+    <label class="field-label">Kỹ năng</label>
+    <input id="skills" placeholder="VD: Excel, Python">
+
+    <label class="field-label">Lịch làm việc thứ Bảy</label>
+    <select id="saturday">
+      <option value="">Không lọc</option>
+      <option value="off">Nghỉ thứ Bảy</option>
+      <option value="work">Có làm thứ Bảy</option>
+      <option value="negotiable">Thỏa thuận</option>
+    </select>
+
+    <label class="field-label">Tin đăng trong</label>
+    <select id="posted">
+      <option value="">Mọi thời gian</option>
+      <option value="1">24 giờ qua</option>
+      <option value="3">3 ngày qua</option>
+      <option value="7">7 ngày qua</option>
+      <option value="30">30 ngày qua</option>
+    </select>
+
+    <div class="filter-actions">
+      <button id="saveFilters" class="btn btn-soft full">♡ Lưu bộ lọc</button>
+      <button id="loadFilters" class="btn btn-outline full">📂 Tải bộ lọc đã lưu</button>
+    </div>
+  </aside>
+
+  <div class="results">
+    <div class="results-heading">
+      <div>
+        <p class="eyebrow blue">CƠ HỘI DÀNH CHO BẠN</p>
+        <h2 id="resultTitle">Việc làm mới nhất</h2>
+      </div>
+      <select id="sort">
+        <option value="latest">Mới nhất</option>
+        <option value="deadline">Hạn gần nhất</option>
+      </select>
+    </div>
+    <div id="resultState"></div>
+    <div id="jobResults" class="job-list"></div>
+  </div>
+</section>
+
+<!-- ==================== HƯỚNG NGHIỆP ==================== -->
+<section class="career wrap" id="career">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow blue">GÓC HƯỚNG NGHIỆP</p>
+      <h2>Đi cùng bạn trên hành trình nghề nghiệp</h2>
+    </div>
+  </div>
+  <div id="careerCards" class="career-grid">
+    <div class="loading">Đang tải nội dung…</div>
+  </div>
+</section>
+
+<!-- ==================== KHU VỰC SINH VIÊN ==================== -->
+<section class="student wrap" id="student" hidden>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow blue">KHU VỰC SINH VIÊN</p>
+      <h2>Hồ sơ và hành trình ứng tuyển</h2>
+    </div>
+  </div>
+  <div class="student-grid">
+    <!-- Profile form -->
+    <form id="profileForm" class="panel">
+      <h3>👤 Hồ sơ cá nhân</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Họ và tên</label>
+          <input name="full_name" placeholder="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+          <label>Ngành học</label>
+          <input name="major" placeholder="Quản trị kinh doanh">
+        </div>
+        <div class="form-group">
+          <label>Số điện thoại</label>
+          <input name="phone" placeholder="0900 000 000">
+        </div>
+        <div class="form-group">
+          <label>Kỹ năng</label>
+          <input name="skills" placeholder="Excel, Python, SQL">
+        </div>
+        <div class="form-group full-width">
+          <label>Giới thiệu ngắn</label>
+          <textarea name="bio" placeholder="Sinh viên năm 3, đang tìm vị trí thực tập phù hợp..." rows="3"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary">💾 Lưu hồ sơ</button>
+      <p class="form-message" id="profileMessage"></p>
+    </form>
+
+    <!-- CV & Applications -->
+    <div class="panel">
+      <h3>📄 CV của tôi</h3>
+      <form id="cvForm" class="cv-upload">
+        <input type="file" name="file" accept=".pdf,.doc,.docx" required id="cvFileInput">
+        <label for="cvFileInput" class="file-label">Chọn file CV (.pdf, .doc, .docx)</label>
+        <button class="btn btn-soft">⬆ Tải CV lên</button>
+      </form>
+      <div id="cvList"></div>
+
+      <h3 class="applications-title">📋 Lịch sử ứng tuyển</h3>
+      <div class="application-tools">
+        <input id="applicationQuery" placeholder="Tìm vị trí/doanh nghiệp...">
+        <select id="applicationStatus">
+          <option value="">Tất cả trạng thái</option>
+          <option value="submitted">Đã gửi</option>
+          <option value="reviewing">Đang xem xét</option>
+          <option value="accepted">Đã nhận</option>
+          <option value="rejected">Từ chối</option>
+          <option value="withdrawn">Đã rút</option>
+        </select>
+      </div>
+      <div id="applicationList"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="wrap footer-content">
+    <div class="footer-brand">
+      <a class="brand" href="/">NEU<span>Career</span></a>
+      <p>Kết nối sinh viên Đại học Kinh tế Quốc dân với cơ hội nghề nghiệp chất lượng.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Liên kết nhanh</h4>
+      <a href="#jobs">Tìm việc</a>
+      <a href="#career">Hướng nghiệp</a>
+    </div>
+    <div class="footer-links">
+      <h4>Hỗ trợ</h4>
+      <a href="#">Hướng dẫn sử dụng</a>
+      <a href="#">Liên hệ</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="wrap">© 2026 NEU Career Connect. Đại học Kinh tế Quốc dân.</div>
+  </div>
+</footer>
+
+<!-- Toast notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Modal -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="closeModal">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS jobs (
         CHECK (job_type IN ('internship', 'full_time', 'part_time', 'contract')),
     major_required TEXT NOT NULL DEFAULT '',
     skills_required TEXT NOT NULL DEFAULT '',
+    salary_text TEXT NOT NULL DEFAULT '',
+    saturday_policy TEXT NOT NULL DEFAULT 'unknown'
+        CHECK (saturday_policy IN ('off', 'work', 'negotiable', 'unknown')),
     deadline TEXT,
     status TEXT NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'approved', 'rejected', 'closed')),
