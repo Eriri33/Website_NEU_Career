@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS job_categories (
 
     FOREIGN KEY (parent_id)
         REFERENCES job_categories(id)
-        ON DELETE RESTRICT,
+        ON DELETE RESTRICT
 
 );
 CREATE INDEX IF NOT EXISTS idx_job_categories_parent_id
