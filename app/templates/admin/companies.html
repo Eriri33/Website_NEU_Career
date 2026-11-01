@@ -1,0 +1,4 @@
+{% extends "admin/base.html" %}{% block title %}Doanh nghiệp{% endblock %}{% block page_key %}companies{% endblock %}{% block breadcrumb %}Doanh nghiệp{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">KIỂM DUYỆT</div><h1>Doanh nghiệp</h1><p>Xem xét hồ sơ doanh nghiệp đang chờ phê duyệt.</p></div><span class="count-chip" id="companyCount">0 hồ sơ</span></div>
+<section class="panel"><div class="toolbar"><div class="search-box"><span>⌕</span><input id="companySearch" placeholder="Tìm tên doanh nghiệp hoặc email..."></div><button class="btn btn-light" id="refreshCompanies">↻ Làm mới</button></div><div class="table-wrap"><table><thead><tr><th>DOANH NGHIỆP</th><th>EMAIL TÀI KHOẢN</th><th>WEBSITE</th><th>NGÀY GỬI</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody id="companiesTable"><tr><td colspan="6" class="empty-cell">Đang tải dữ liệu...</td></tr></tbody></table></div></section>
+{% endblock %}

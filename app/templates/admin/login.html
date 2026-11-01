@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | NEU Career</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-login.css') }}">
+</head>
+<body class="login-page">
+  <main class="login-screen">
+    <div class="login-slides" aria-hidden="true">
+      <img src="{{ url_for('static', filename='images/neu/neu_2.jpg') }}"
+           class="slide active" data-theme="light-bg"
+           alt="Tòa nhà Đại học Kinh tế Quốc dân">
+      <img src="{{ url_for('static', filename='images/neu/background1.webp') }}"
+           class="slide" data-theme="dark-bg"
+           alt="Không gian Đại học Kinh tế Quốc dân">
+      <img src="{{ url_for('static', filename='images/neu/images_toa_A2.jpg') }}"
+           class="slide" data-theme="light-bg"
+           alt="Tòa nhà A2 Đại học Kinh tế Quốc dân">
+    </div>
+
+    <section class="login-panel" aria-label="Đăng nhập quản trị">
+      <div class="login-panel-content">
+        <a class="login-brand" href="/" aria-label="NEU Career">
+          <span class="brand-mark">N</span>
+          <span class="brand-copy">
+            <strong>NEU CAREER</strong>
+            <small>ADMINISTRATION</small>
+          </span>
+        </a>
+
+        <div class="login-heading">
+          <span class="eyebrow">STAFF WORKSPACE</span>
+          <h1>Login</h1>
+          <p>Đăng nhập bằng tài khoản Admin hoặc Moderator.</p>
+        </div>
+
+        <form id="staffLogin" class="login-form">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg>
+            </span>
+            <input id="email" name="email" type="email"
+                   placeholder="Enter your email" required autocomplete="username">
+          </div>
+
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><circle cx="8" cy="15.5" r="4"/><path d="M11 12.5 20 3.5l2 2-2 2 1.5 1.5-2.5 2.5-1.5-1.5-3.5 3.5"/></svg>
+            </span>
+            <input id="password" name="password" type="password"
+                   placeholder="Enter your password" required autocomplete="current-password">
+            <button class="password-toggle" type="button" id="togglePassword"
+                    aria-label="Hiện mật khẩu" title="Hiện/ẩn mật khẩu">◉</button>
+          </div>
+
+          <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+          <button class="login-submit" type="submit">
+            <span class="submit-label">Login</span><span class="submit-arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <p class="login-footnote">Chỉ dành cho tài khoản có quyền Admin / Moderator.</p>
+      </div>
+    </section>
+
+    <nav class="slide-indicators" aria-label="Chọn ảnh nền">
+      <button type="button" class="slide-dot active" data-slide="0" aria-label="Ảnh 1" aria-pressed="true"></button>
+      <button type="button" class="slide-dot" data-slide="1" aria-label="Ảnh 2" aria-pressed="false"></button>
+      <button type="button" class="slide-dot" data-slide="2" aria-label="Ảnh 3" aria-pressed="false"></button>
+    </nav>
+  </main>
+  <script src="{{ url_for('static', filename='js/admin-login.js') }}" defer></script>
+</body>
+</html>

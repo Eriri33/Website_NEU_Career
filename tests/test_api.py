@@ -132,6 +132,31 @@ class CareerConnectAPITestCase(unittest.TestCase):
         response = self.client.get("/api/admin/users")
         self.assertEqual(response.status_code, 403)
 
+    def test_staff_dashboard_summary_requires_staff_and_returns_real_counts(self):
+        # Anonymous users cannot read staff dashboard data.
+        anonymous = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(anonymous.status_code, 401)
+
+        # A student account cannot read staff dashboard data.
+        self.assertEqual(self.register("dashboard-student@example.com", "student").status_code, 201)
+        self.login("dashboard-student@example.com")
+        forbidden = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(forbidden.status_code, 403)
+
+        # Admin can read aggregate metrics from the test database.
+        self.client.post("/api/auth/logout")
+        self.login("admin@example.com", "admin123")
+        response = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["role"], "admin")
+        self.assertEqual(payload["stats"]["active_users"], 2)
+        self.assertEqual(payload["stats"]["active_students"], 1)
+        self.assertEqual(payload["stats"]["companies_pending"], 0)
+        self.assertEqual(payload["stats"]["jobs_pending"], 0)
+        self.assertEqual(payload["stats"]["applications_total"], 0)
+        self.assertEqual(payload["recent_reviews"], [])
+
     def test_job_list_is_empty_without_approved_job(self):
         self.assertEqual(self.client.get("/api/jobs").status_code, 200)
         self.assertEqual(self.client.get("/api/jobs").json, [])

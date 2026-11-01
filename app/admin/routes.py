@@ -18,25 +18,114 @@ def _log_review(db, entity_type, entity_id, action, note):
 @admin_bp.get("/pending/companies")
 @roles_required(*STAFF_ROLES)
 def pending_companies():
-    rows = get_db().execute("""
-        SELECT c.id, c.company_name, c.description, c.website, c.created_at, u.email
-        FROM companies c JOIN users u ON u.id = c.user_id
-        WHERE c.approval_status = 'pending' AND u.is_active = 1 ORDER BY c.created_at
-    """).fetchall()
-    return jsonify([dict(row) for row in rows])
+    q = request.args.get("q", "").strip()
+    sort = request.args.get("sort", "oldest")
 
+    if sort not in ("oldest", "newest"):
+        return jsonify({
+            "error": "invalid_sort",
+            "message": "sort phải là oldest hoặc newest."
+        }), 400
+
+    sql = """
+        SELECT c.id, c.company_name, c.description, c.website,
+            c.created_at, u.email
+        FROM companies c
+        JOIN users u ON u.id = c.user_id
+        WHERE c.approval_status = 'pending'
+        AND u.is_active = 1
+    """
+    params = []
+    if q:
+        sql += """
+            AND (c.company_name LIKE ? OR u.email LIKE ?)
+        """
+        keyword = f"%{q}%"
+        params.extend([keyword, keyword])
+
+    order = "ASC" if sort == "oldest" else "DESC"
+    sql += f" ORDER BY c.created_at {order}, c.id {order}"
+
+    rows = get_db().execute(sql, params).fetchall()
+    return jsonify([dict(row) for row in rows])
 
 @admin_bp.get("/pending/jobs")
 @roles_required(*STAFF_ROLES)
 def pending_jobs():
-    rows = get_db().execute("""
-        SELECT j.id, j.title, j.description, j.created_at, c.company_name
-        FROM jobs j JOIN companies c ON c.id = j.company_id JOIN users u ON u.id = c.user_id
-        WHERE j.status = 'pending' AND c.approval_status = 'approved' AND u.is_active = 1
-        ORDER BY j.created_at
-    """).fetchall()
-    return jsonify([dict(row) for row in rows])
+    q = request.args.get("q", "").strip()
+    location = request.args.get("location", "").strip()
+    job_type = request.args.get("job_type", "").strip()
+    category_raw = request.args.get("category_id", "").strip()
+    sort = request.args.get("sort", "oldest")
 
+    if sort not in ("oldest", "newest"):
+        return jsonify({
+            "error": "invalid_sort",
+            "message": "sort phải là oldest hoặc newest."
+        }), 400
+
+    category_id = None
+    if category_raw:
+        try:
+            category_id = int(category_raw)
+            if category_id <= 0:
+                raise ValueError
+        except ValueError:
+            return jsonify({
+                "error": "invalid_category_id",
+                "message": "category_id phải là số nguyên dương."
+            }), 400
+
+    allowed_job_types = {
+        "internship", "full_time", "part_time", "contract"
+    }
+    if job_type and job_type not in allowed_job_types:
+        return jsonify({
+            "error": "invalid_job_type",
+            "message": "job_type không hợp lệ."
+        }), 400
+
+    sql = """
+        SELECT j.id, j.title, j.description, j.created_at,
+            j.category_id, j.location, j.job_type,
+            c.company_name
+        FROM jobs j
+        JOIN companies c ON c.id = j.company_id
+        JOIN users u ON u.id = c.user_id
+        WHERE j.status = 'pending'
+        AND c.approval_status = 'approved'
+        AND u.is_active = 1
+    """
+    params = []
+
+    if q:
+        sql += """
+            AND (
+                j.title LIKE ?
+                OR j.description LIKE ?
+                OR c.company_name LIKE ?
+            )
+        """
+        keyword = f"%{q}%"
+        params.extend([keyword, keyword, keyword])
+
+    if category_id is not None:
+        sql += " AND j.category_id = ?"
+        params.append(category_id)
+
+    if location:
+        sql += " AND j.location LIKE ?"
+        params.append(f"%{location}%")
+
+    if job_type:
+        sql += " AND j.job_type = ?"
+        params.append(job_type)
+
+    order = "ASC" if sort == "oldest" else "DESC"
+    sql += f" ORDER BY j.created_at {order}, j.id {order}"
+
+    rows = get_db().execute(sql, params).fetchall()
+    return jsonify([dict(row) for row in rows])
 
 @admin_bp.post("/companies/<int:company_id>/review")
 @roles_required(*STAFF_ROLES)
@@ -100,6 +189,105 @@ def review_histories():
         params.append(entity_id)
     sql += " ORDER BY h.created_at DESC"
     return jsonify([dict(row) for row in get_db().execute(sql, params).fetchall()])
+
+
+
+# ------------------------------- Staff dashboard -------------------------------
+@admin_bp.get("/dashboard/summary")
+@roles_required(*STAFF_ROLES)
+def dashboard_summary():
+    """Return aggregate platform metrics and the latest moderation decisions."""
+    db = get_db()
+
+    def count(sql, params=()):
+        row = db.execute(sql, params).fetchone()
+        return int(row["total"] or 0)
+
+    stats = {
+        "active_users": count("SELECT COUNT(*) AS total FROM users WHERE is_active = 1"),
+        "active_students": count(
+            "SELECT COUNT(*) AS total FROM users WHERE role = 'student' AND is_active = 1"
+        ),
+        "active_business_accounts": count(
+            "SELECT COUNT(*) AS total FROM users WHERE role = 'business' AND is_active = 1"
+        ),
+        "companies_total": count(
+            """SELECT COUNT(*) AS total FROM companies c
+               JOIN users u ON u.id = c.user_id WHERE u.is_active = 1"""
+        ),
+        "companies_approved": count(
+            """SELECT COUNT(*) AS total FROM companies c
+               JOIN users u ON u.id = c.user_id
+               WHERE c.approval_status = 'approved' AND u.is_active = 1"""
+        ),
+        "companies_pending": count(
+            """SELECT COUNT(*) AS total FROM companies c
+               JOIN users u ON u.id = c.user_id
+               WHERE c.approval_status = 'pending' AND u.is_active = 1"""
+        ),
+        "jobs_total": count("SELECT COUNT(*) AS total FROM jobs"),
+        "jobs_approved": count(
+            """SELECT COUNT(*) AS total FROM jobs j
+               JOIN companies c ON c.id = j.company_id
+               JOIN users u ON u.id = c.user_id
+               WHERE j.status = 'approved' AND c.approval_status = 'approved'
+               AND u.is_active = 1
+               AND (j.deadline IS NULL OR date(j.deadline) >= date('now'))"""
+        ),
+        "jobs_pending": count(
+            """SELECT COUNT(*) AS total FROM jobs j
+               JOIN companies c ON c.id = j.company_id
+               JOIN users u ON u.id = c.user_id
+               WHERE j.status = 'pending' AND c.approval_status = 'approved'
+               AND u.is_active = 1"""
+        ),
+        "applications_total": count("SELECT COUNT(*) AS total FROM applications"),
+        "applications_pending": count(
+            "SELECT COUNT(*) AS total FROM applications WHERE status IN ('submitted', 'reviewing')"
+        ),
+        "categories_total": count("SELECT COUNT(*) AS total FROM job_categories"),
+        "categories_active": count("SELECT COUNT(*) AS total FROM job_categories WHERE is_active = 1"),
+        "contents_total": count("SELECT COUNT(*) AS total FROM career_contents"),
+        "contents_published": count(
+            "SELECT COUNT(*) AS total FROM career_contents WHERE status = 'published'"
+        ),
+        "contents_draft": count(
+            "SELECT COUNT(*) AS total FROM career_contents WHERE status = 'draft'"
+        ),
+        "reviews_today": count(
+            "SELECT COUNT(*) AS total FROM review_histories WHERE date(created_at) = date('now')"
+        ),
+    }
+
+    recent_reviews = db.execute("""
+        SELECT
+            h.id,
+            h.entity_type,
+            h.entity_id,
+            h.action,
+            h.note,
+            h.created_at,
+            reviewer.email AS reviewer_email,
+            CASE
+                WHEN h.entity_type = 'company'
+                    THEN COALESCE(c.company_name, 'Doanh nghiệp #' || h.entity_id)
+                ELSE COALESCE(j.title, 'Tin tuyển dụng #' || h.entity_id)
+            END AS entity_name
+        FROM review_histories h
+        LEFT JOIN users reviewer ON reviewer.id = h.reviewer_id
+        LEFT JOIN companies c
+            ON h.entity_type = 'company' AND c.id = h.entity_id
+        LEFT JOIN jobs j
+            ON h.entity_type = 'job' AND j.id = h.entity_id
+        ORDER BY h.created_at DESC, h.id DESC
+        LIMIT 8
+    """).fetchall()
+
+    return jsonify({
+        "role": session.get("role"),
+        "stats": stats,
+        "recent_reviews": [dict(row) for row in recent_reviews],
+    })
 
 
 # -------------------------------- User CRUD --------------------------------
@@ -195,7 +383,15 @@ def deactivate_user(user_id):
 @admin_bp.get("/categories")
 @roles_required(*STAFF_ROLES)
 def list_categories():
-    rows = get_db().execute("SELECT * FROM job_categories ORDER BY name").fetchall()
+    rows = get_db().execute("""
+        SELECT
+            c.*,
+            p.name AS parent_name
+        FROM job_categories c
+        LEFT JOIN job_categories p ON p.id = c.parent_id
+        ORDER BY c.level, c.name
+    """).fetchall()
+
     return jsonify([dict(row) for row in rows])
 
 
@@ -203,60 +399,291 @@ def list_categories():
 @roles_required("admin")
 def create_category():
     data = request.get_json(silent=True) or {}
+
     name = (data.get("name") or "").strip()
-    if not name:
-        return jsonify({"error": "invalid_input", "message": "Tên danh mục là bắt buộc."}), 400
+    description = (data.get("description") or "").strip()
+    active = data.get("is_active", 1)
+    parent_id = data.get("parent_id")
+    
+    print("DEBUG CATEGORY:", repr(data))
+    print("DEBUG NAME:", repr(name))
+    print("DEBUG ACTIVE:", repr(active), type(active))
+    print("DEBUG CONDITION:", not name, active not in (0, 1, True, False))
+
+    if not name or active not in (0, 1, True, False):
+        return jsonify({
+            "error": "invalid_input",
+            "message": "Tên danh mục và trạng thái không hợp lệ."
+        }), 400
+
+    # Mặc định danh mục không có cha là cấp 1
+    level = 1
+
+    if parent_id not in (None, ""):
+        try:
+            parent_id = int(parent_id)
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": "invalid_parent",
+                "message": "Danh mục cha không hợp lệ."
+            }), 400
+
+        parent = get_db().execute("""
+            SELECT id, level
+            FROM job_categories
+            WHERE id = ?
+        """, (parent_id,)).fetchone()
+
+        if not parent:
+            return jsonify({
+                "error": "parent_not_found",
+                "message": "Danh mục cha không tồn tại."
+            }), 404
+
+        level = parent["level"] + 1
+
+        if level > 3:
+            return jsonify({
+                "error": "max_level_reached",
+                "message": "Không thể tạo danh mục cấp 4."
+            }), 400
+
     try:
-        cur = get_db().execute("INSERT INTO job_categories (name, description) VALUES (?, ?)",
-                               (name, (data.get("description") or "").strip()))
+        cur = get_db().execute("""
+            INSERT INTO job_categories (
+                parent_id, level, name, description, is_active
+            )
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            parent_id if parent_id not in (None, "") else None,
+            level,
+            name,
+            description,
+            int(active)
+        ))
+
         get_db().commit()
+
     except sqlite3.IntegrityError:
         get_db().rollback()
-        return jsonify({"error": "category_exists", "message": "Tên danh mục đã tồn tại."}), 409
-    return jsonify({"message": "Đã tạo danh mục.", "category_id": cur.lastrowid}), 201
+        return jsonify({
+            "error": "category_exists",
+            "message": "Tên danh mục đã tồn tại."
+        }), 409
 
+    return jsonify({
+        "message": "Đã tạo danh mục.",
+        "category_id": cur.lastrowid,
+        "level": level
+    }), 201
 
 @admin_bp.get("/categories/<int:category_id>")
 @roles_required(*STAFF_ROLES)
 def get_category(category_id):
-    row = get_db().execute("SELECT * FROM job_categories WHERE id = ?", (category_id,)).fetchone()
-    if not row:
-        return jsonify({"error": "not_found"}), 404
-    return jsonify(dict(row))
+    row = get_db().execute("""
+        SELECT
+            c.*,
+            p.name AS parent_name
+        FROM job_categories c
+        LEFT JOIN job_categories p ON p.id = c.parent_id
+        WHERE c.id = ?
+    """, (category_id,)).fetchone()
 
+    if not row:
+        return jsonify({
+            "error": "not_found",
+            "message": "Danh mục không tồn tại."
+        }), 404
+
+    return jsonify(dict(row))
 
 @admin_bp.put("/categories/<int:category_id>")
 @roles_required("admin")
 def update_category(category_id):
+    db = get_db()
     data = request.get_json(silent=True) or {}
-    row = get_db().execute("SELECT * FROM job_categories WHERE id = ?", (category_id,)).fetchone()
+
+    row = db.execute("""
+        SELECT *
+        FROM job_categories
+        WHERE id = ?
+    """, (category_id,)).fetchone()
+
     if not row:
-        return jsonify({"error": "not_found"}), 404
+        return jsonify({
+            "error": "not_found",
+            "message": "Danh mục không tồn tại."
+        }), 404
+
     name = (data.get("name", row["name"]) or "").strip()
-    desc = (data.get("description", row["description"]) or "").strip()
+    description = (
+        data.get("description", row["description"]) or ""
+    ).strip()
     active = data.get("is_active", row["is_active"])
+
+    # Nếu request không gửi parent_id thì giữ nguyên danh mục cha
+    parent_id = data.get("parent_id", row["parent_id"])
+
     if not name or active not in (0, 1, True, False):
-        return jsonify({"error": "invalid_input"}), 400
+        return jsonify({
+            "error": "invalid_input",
+            "message": "Tên danh mục và trạng thái không hợp lệ."
+        }), 400
+
+    # Xác định cấp danh mục mới
+    level = 1
+
+    if parent_id not in (None, ""):
+        try:
+            parent_id = int(parent_id)
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": "invalid_parent",
+                "message": "Danh mục cha không hợp lệ."
+            }), 400
+
+        parent = db.execute("""
+            SELECT id, level
+            FROM job_categories
+            WHERE id = ?
+        """, (parent_id,)).fetchone()
+
+        if not parent:
+            return jsonify({
+                "error": "parent_not_found",
+                "message": "Danh mục cha không tồn tại."
+            }), 404
+
+        # Không cho một danh mục làm danh mục cha của chính nó
+        # hoặc của một danh mục nằm trong nhánh con của nó
+        ancestor_id = parent_id
+
+        while ancestor_id is not None:
+            if ancestor_id == category_id:
+                return jsonify({
+                    "error": "category_cycle",
+                    "message": "Không thể chọn danh mục hiện tại hoặc danh mục con làm danh mục cha."
+                }), 400
+
+            ancestor = db.execute("""
+                SELECT parent_id
+                FROM job_categories
+                WHERE id = ?
+            """, (ancestor_id,)).fetchone()
+
+            ancestor_id = ancestor["parent_id"] if ancestor else None
+
+        level = parent["level"] + 1
+
+        if level > 3:
+            return jsonify({
+                "error": "max_level_reached",
+                "message": "Không thể tạo danh mục cấp 4."
+            }), 400
+
+    # Nếu danh mục đang có danh mục con, không cho thay đổi cấp
+    has_children = db.execute("""
+        SELECT 1
+        FROM job_categories
+        WHERE parent_id = ?
+        LIMIT 1
+    """, (category_id,)).fetchone()
+
+    if has_children and level != row["level"]:
+        return jsonify({
+            "error": "category_has_children",
+            "message": "Không thể thay đổi cấp của danh mục đang có danh mục con."
+        }), 409
+
     try:
-        get_db().execute("UPDATE job_categories SET name = ?, description = ?, is_active = ? WHERE id = ?",
-                         (name, desc, int(active), category_id))
-        get_db().commit()
+        db.execute("""
+            UPDATE job_categories
+            SET
+                parent_id = ?,
+                level = ?,
+                name = ?,
+                description = ?,
+                is_active = ?
+            WHERE id = ?
+        """, (
+            parent_id if parent_id not in (None, "") else None,
+            level,
+            name,
+            description,
+            int(active),
+            category_id
+        ))
+
+        db.commit()
+
     except sqlite3.IntegrityError:
-        get_db().rollback()
-        return jsonify({"error": "category_exists"}), 409
-    return jsonify({"message": "Đã cập nhật danh mục."})
+        db.rollback()
+        return jsonify({
+            "error": "category_exists",
+            "message": "Tên danh mục đã tồn tại."
+        }), 409
+
+    return jsonify({
+        "message": "Đã cập nhật danh mục.",
+        "level": level
+    })
 
 
 @admin_bp.delete("/categories/<int:category_id>")
 @roles_required("admin")
 def delete_category(category_id):
-    # Foreign-key ON DELETE SET NULL preserves jobs when their category is removed.
-    cur = get_db().execute("DELETE FROM job_categories WHERE id = ?", (category_id,))
-    get_db().commit()
-    if cur.rowcount == 0:
-        return jsonify({"error": "not_found"}), 404
-    return jsonify({"message": "Đã xóa danh mục; các tin cũ được giữ lại và bỏ liên kết danh mục."})
+    db = get_db()
 
+    row = db.execute("""
+        SELECT id
+        FROM job_categories
+        WHERE id = ?
+    """, (category_id,)).fetchone()
+
+    if not row:
+        return jsonify({
+            "error": "not_found",
+            "message": "Danh mục không tồn tại."
+        }), 404
+
+    # Không cho xóa danh mục đang có danh mục con
+    has_children = db.execute("""
+        SELECT 1
+        FROM job_categories
+        WHERE parent_id = ?
+        LIMIT 1
+    """, (category_id,)).fetchone()
+
+    if has_children:
+        return jsonify({
+            "error": "category_has_children",
+            "message": "Không thể xóa danh mục đang có danh mục con. Hãy xóa hoặc chuyển danh mục con trước."
+        }), 409
+
+    try:
+        cur = db.execute("""
+            DELETE FROM job_categories
+            WHERE id = ?
+        """, (category_id,))
+
+        db.commit()
+
+    except sqlite3.IntegrityError:
+        db.rollback()
+        return jsonify({
+            "error": "delete_failed",
+            "message": "Không thể xóa danh mục này."
+        }), 409
+
+    if cur.rowcount == 0:
+        return jsonify({
+            "error": "not_found",
+            "message": "Danh mục không tồn tại."
+        }), 404
+
+    return jsonify({
+        "message": "Đã xóa danh mục. Các tin tuyển dụng cũ vẫn được giữ lại."
+    })
 
 # ------------------------------ Career content CRUD ------------------------------
 @admin_bp.get("/career-contents")
