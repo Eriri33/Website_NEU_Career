@@ -1,3 +1,4 @@
+
 {% extends "admin/base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block page_key %}dashboard{% endblock %}
@@ -7,33 +8,30 @@
 <div class="dashboard-heading">
   <div>
     <div class="eyebrow">NEU CAREER · STAFF WORKSPACE</div>
-    <h1>Tổng quan hệ thống</h1>
-    <p>Xin chào, <strong id="dashboardGreeting">Staff</strong>. Đây là tình hình hoạt động mới nhất của NEU Career.</p>
+
+    {% if session.get('role') == 'admin' %}
+      <h1>Tổng quan hệ thống</h1>
+      <p>Xin chào, <strong id="dashboardGreeting">Staff</strong>. Đây là tình hình hoạt động mới nhất của NEU Career.</p>
+    {% else %}
+      <h1>Trung tâm kiểm duyệt</h1>
+      <p>Xin chào, <strong id="dashboardGreeting">Staff</strong></p>
+    {% endif %}
   </div>
+
   <div class="dashboard-heading-actions">
     <span class="dashboard-date" id="dashboardDate">Đang tải ngày...</span>
-    <button class="btn btn-primary" id="refreshDashboard" type="button">
-      <span aria-hidden="true">↻</span> Làm mới dữ liệu
-    </button>
   </div>
 </div>
 
 <div class="dashboard-error hidden" id="dashboardError" role="alert"></div>
 
+{% if session.get('role') == 'admin' %}
 <section class="stats-grid dashboard-stats" aria-label="Chỉ số hệ thống">
-  {% if session.get('role') == 'admin' %}
   <article class="stat-card stat-card-primary">
     <div class="stat-top"><span>Tài khoản đang hoạt động</span><span class="stat-icon blue">♙</span></div>
     <div class="stat-value" id="statActiveUsers">—</div>
     <div class="stat-foot">Tổng tài khoản chưa bị khóa</div>
   </article>
-  {% else %}
-  <article class="stat-card stat-card-primary">
-    <div class="stat-top"><span>Sinh viên đang hoạt động</span><span class="stat-icon blue">♙</span></div>
-    <div class="stat-value" id="statActiveStudents">—</div>
-    <div class="stat-foot">Tài khoản sinh viên trên hệ thống</div>
-  </article>
-  {% endif %}
 
   <article class="stat-card">
     <div class="stat-top"><span>Doanh nghiệp đã duyệt</span><span class="stat-icon green">▣</span></div>
@@ -65,28 +63,46 @@
     <div class="stat-foot">Tin thuộc doanh nghiệp đã duyệt</div>
   </article>
 </section>
+{% else %}
+<section class="stats-grid dashboard-stats" aria-label="Chỉ số kiểm duyệt">
+  <article class="stat-card stat-card-attention">
+    <div class="stat-top"><span>Doanh nghiệp chờ duyệt</span><span class="stat-icon gold">◷</span></div>
+    <div class="stat-value" id="statPendingCompanies">—</div>
+    <div class="stat-foot">Hồ sơ cần được xem xét</div>
+  </article>
+
+  <article class="stat-card stat-card-attention">
+    <div class="stat-top"><span>Tin tuyển dụng chờ duyệt</span><span class="stat-icon red">◷</span></div>
+    <div class="stat-value" id="statPendingJobs">—</div>
+    <div class="stat-foot">Tin cần kiểm tra trước khi công khai</div>
+  </article>
+</section>
+{% endif %}
 
 <div class="dashboard-main-grid">
   <section class="panel dashboard-queue-panel">
     <div class="panel-heading">
       <div>
         <h2>Hàng chờ kiểm duyệt</h2>
-        <p>Các mục cần Admin/Moderator xem xét</p>
+        <p>Các hồ sơ và tin tuyển dụng cần được xem xét</p>
       </div>
       <span class="live-label"><i></i> Dữ liệu trực tiếp</span>
     </div>
+
     <div class="queue-list">
       <a href="{{ url_for('admin_pages.companies') }}">
         <span class="queue-symbol purple">▣</span>
         <span><b>Hồ sơ doanh nghiệp</b><small>Kiểm tra thông tin và phê duyệt doanh nghiệp</small></span>
         <strong id="queueCompanies">—</strong><span class="arrow">›</span>
       </a>
+
       <a href="{{ url_for('admin_pages.jobs') }}">
         <span class="queue-symbol blue">▤</span>
         <span><b>Tin tuyển dụng</b><small>Kiểm tra nội dung tin trước khi hiển thị</small></span>
         <strong id="queueJobs">—</strong><span class="arrow">›</span>
       </a>
     </div>
+
     <div class="queue-footer">
       <span>Đã xử lý hôm nay</span>
       <strong id="reviewsToday">—</strong>
@@ -97,31 +113,37 @@
 
   <section class="panel dashboard-shortcuts">
     <div class="panel-heading">
-      <div><h2>Truy cập nhanh</h2><p>Mở nhanh các khu vực quản lý</p></div>
+      <div><h2>Truy cập nhanh</h2><p>Mở nhanh các khu vực làm việc</p></div>
     </div>
+
     <div class="shortcut-grid">
       <a class="shortcut-card" href="{{ url_for('admin_pages.companies') }}">
         <span class="shortcut-icon shortcut-blue">▣</span>
         <span><b>Doanh nghiệp</b><small>Hồ sơ và trạng thái duyệt</small></span><span class="shortcut-arrow">→</span>
       </a>
+
       <a class="shortcut-card" href="{{ url_for('admin_pages.jobs') }}">
         <span class="shortcut-icon shortcut-gold">▤</span>
         <span><b>Tin tuyển dụng</b><small>Kiểm duyệt tin đăng</small></span><span class="shortcut-arrow">→</span>
       </a>
+
       <a class="shortcut-card" href="{{ url_for('admin_pages.contents') }}">
         <span class="shortcut-icon shortcut-red">▧</span>
         <span><b>Nội dung hướng nghiệp</b><small>Bài viết và tài liệu</small></span><span class="shortcut-arrow">→</span>
       </a>
+
       {% if session.get('role') == 'admin' %}
       <a class="shortcut-card" href="{{ url_for('admin_pages.users') }}">
         <span class="shortcut-icon shortcut-navy">♙</span>
         <span><b>Tài khoản</b><small>Vai trò và trạng thái</small></span><span class="shortcut-arrow">→</span>
       </a>
       {% endif %}
+
       <a class="shortcut-card" href="{{ url_for('admin_pages.categories') }}">
         <span class="shortcut-icon shortcut-green">☷</span>
         <span><b>Danh mục ngành nghề</b><small>Phân loại tin tuyển dụng</small></span><span class="shortcut-arrow">→</span>
       </a>
+
       <a class="shortcut-card" href="{{ url_for('admin_pages.history') }}">
         <span class="shortcut-icon shortcut-gray">◷</span>
         <span><b>Lịch sử kiểm duyệt</b><small>Các quyết định gần đây</small></span><span class="shortcut-arrow">→</span>
@@ -133,19 +155,37 @@
 <div class="dashboard-lower-grid">
   <section class="panel dashboard-activity">
     <div class="panel-heading">
-      <div><h2>Hoạt động kiểm duyệt gần đây</h2><p>Những quyết định mới nhất của đội ngũ quản trị</p></div>
+      <div>
+        <h2>Hoạt động kiểm duyệt gần đây</h2>
+        <p>Những quyết định mới nhất của đội ngũ kiểm duyệt</p>
+      </div>
       <a class="panel-link" href="{{ url_for('admin_pages.history') }}">Xem tất cả →</a>
     </div>
+
     <div class="table-wrap">
       <table class="dashboard-table">
-        <thead><tr><th>ĐỐI TƯỢNG</th><th>TÊN</th><th>QUYẾT ĐỊNH</th><th>NGƯỜI DUYỆT</th><th>THỜI GIAN</th></tr></thead>
-        <tbody id="recentReviews"><tr><td colspan="5" class="empty-cell">Đang tải hoạt động...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th>ĐỐI TƯỢNG</th>
+            <th>TÊN</th>
+            <th>QUYẾT ĐỊNH</th>
+            <th>NGƯỜI DUYỆT</th>
+            <th>THỜI GIAN</th>
+          </tr>
+        </thead>
+        <tbody id="recentReviews">
+          <tr><td colspan="5" class="empty-cell">Đang tải hoạt động...</td></tr>
+        </tbody>
       </table>
     </div>
   </section>
 
+  {% if session.get('role') == 'admin' %}
   <section class="panel dashboard-content-panel">
-    <div class="panel-heading"><div><h2>Nội dung nền tảng</h2><p>Tình hình danh mục và nội dung hướng nghiệp</p></div></div>
+    <div class="panel-heading">
+      <div><h2>Nội dung nền tảng</h2><p>Tình hình danh mục và nội dung hướng nghiệp</p></div>
+    </div>
+
     <div class="content-metrics">
       <div class="content-metric">
         <span class="metric-icon shortcut-green">☷</span>
@@ -160,10 +200,12 @@
         <span><b id="statDraftContents">—</b><small>Bản nháp</small></span>
       </div>
     </div>
+
     <div class="content-panel-footer">
       <span id="statTotalContents">— nội dung trong hệ thống</span>
       <a href="{{ url_for('admin_pages.contents') }}">Quản lý nội dung →</a>
     </div>
   </section>
+  {% endif %}
 </div>
 {% endblock %}
