@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, session
 from werkzeug.security import generate_password_hash
 from app.database import get_db
 from app.auth.guards import roles_required
+from app.textutil import like_pattern
 
 admin_bp = Blueprint("admin", __name__)
 STAFF_ROLES = {"admin", "moderator"}
@@ -14,27 +15,119 @@ def _log_review(db, entity_type, entity_id, action, note):
                   VALUES (?, ?, ?, ?, ?)""", (session["user_id"], entity_type, entity_id, action, note))
 
 
+def _int_query(name):
+    raw = request.args.get(name)
+    if raw in (None, ""):
+        return None, None
+    try:
+        return int(raw), None
+    except ValueError:
+        return None, (jsonify({"error": "invalid_input", "message": f"{name} phải là số nguyên."}), 400)
+
+
 # ---------------------------- Dashboard / moderation ----------------------------
 @admin_bp.get("/pending/companies")
 @roles_required(*STAFF_ROLES)
 def pending_companies():
-    rows = get_db().execute("""
+    q = (request.args.get("q") or "").strip()
+    sort = request.args.get("sort") or "oldest"
+    if sort not in {"oldest", "newest"}:
+        return jsonify({"error": "invalid_sort", "message": "sort phải là oldest hoặc newest."}), 400
+    sql = """
         SELECT c.id, c.company_name, c.description, c.website, c.created_at, u.email
         FROM companies c JOIN users u ON u.id = c.user_id
-        WHERE c.approval_status = 'pending' AND u.is_active = 1 ORDER BY c.created_at
-    """).fetchall()
+        WHERE c.approval_status = 'pending' AND u.is_active = 1
+    """
+    params = []
+    if q:
+        sql += " AND (fold(c.company_name) LIKE ? ESCAPE '\\' OR fold(u.email) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(q)] * 2)
+    sql += " ORDER BY c.created_at " + ("DESC" if sort == "newest" else "ASC")
+    rows = get_db().execute(sql, params).fetchall()
     return jsonify([dict(row) for row in rows])
 
 
 @admin_bp.get("/pending/jobs")
 @roles_required(*STAFF_ROLES)
 def pending_jobs():
-    rows = get_db().execute("""
-        SELECT j.id, j.title, j.description, j.created_at, c.company_name
+    q = (request.args.get("q") or "").strip()
+    location = (request.args.get("location") or "").strip()
+    job_type = (request.args.get("job_type") or "").strip()
+    sort = request.args.get("sort") or "oldest"
+    category_id, bad = _int_query("category_id")
+    if bad:
+        return bad
+    if job_type and job_type not in {"internship", "full_time", "part_time", "contract"}:
+        return jsonify({"error": "invalid_input", "message": "job_type không hợp lệ."}), 400
+    if sort not in {"oldest", "newest"}:
+        return jsonify({"error": "invalid_sort", "message": "sort phải là oldest hoặc newest."}), 400
+    sql = """
+        SELECT j.id, j.title, j.description, j.location, j.job_type, j.category_id, j.created_at, c.company_name
         FROM jobs j JOIN companies c ON c.id = j.company_id JOIN users u ON u.id = c.user_id
         WHERE j.status = 'pending' AND c.approval_status = 'approved' AND u.is_active = 1
-        ORDER BY j.created_at
-    """).fetchall()
+    """
+    params = []
+    if q:
+        sql += " AND (fold(j.title) LIKE ? ESCAPE '\\' OR fold(j.description) LIKE ? ESCAPE '\\' OR fold(c.company_name) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(q)] * 3)
+    if category_id is not None:
+        sql += " AND j.category_id = ?"
+        params.append(category_id)
+    if location:
+        sql += " AND fold(j.location) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(location))
+    if job_type:
+        sql += " AND j.job_type = ?"
+        params.append(job_type)
+    sql += " ORDER BY j.created_at " + ("DESC" if sort == "newest" else "ASC")
+    rows = get_db().execute(sql, params).fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@admin_bp.get("/jobs")
+@roles_required(*STAFF_ROLES)
+def list_jobs_for_review():
+    """Cross-role job list for moderation; keeps staff out of Business-owned endpoints."""
+    q = (request.args.get("q") or "").strip()
+    status = (request.args.get("status") or "").strip()
+    location = (request.args.get("location") or "").strip()
+    job_type = (request.args.get("job_type") or "").strip()
+    category_id, bad = _int_query("category_id")
+    if bad:
+        return bad
+    company_id, bad = _int_query("company_id")
+    if bad:
+        return bad
+    if status and status not in {"pending", "approved", "rejected", "closed"}:
+        return jsonify({"error": "invalid_status", "message": "status không hợp lệ."}), 400
+    if job_type and job_type not in {"internship", "full_time", "part_time", "contract"}:
+        return jsonify({"error": "invalid_input", "message": "job_type không hợp lệ."}), 400
+    sql = """
+        SELECT j.id, j.title, j.description, j.location, j.job_type, j.category_id, j.status,
+               j.created_at, j.deadline, c.id AS company_id, c.company_name
+        FROM jobs j JOIN companies c ON c.id = j.company_id JOIN users u ON u.id = c.user_id
+        WHERE u.is_active = 1
+    """
+    params = []
+    if q:
+        sql += " AND (fold(j.title) LIKE ? ESCAPE '\\' OR fold(j.description) LIKE ? ESCAPE '\\' OR fold(c.company_name) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(q)] * 3)
+    if status:
+        sql += " AND j.status = ?"
+        params.append(status)
+    if category_id is not None:
+        sql += " AND j.category_id = ?"
+        params.append(category_id)
+    if location:
+        sql += " AND fold(j.location) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(location))
+    if job_type:
+        sql += " AND j.job_type = ?"
+        params.append(job_type)
+    if company_id is not None:
+        sql += " AND c.id = ?"
+        params.append(company_id)
+    rows = get_db().execute(sql + " ORDER BY j.created_at DESC, j.id DESC", params).fetchall()
     return jsonify([dict(row) for row in rows])
 
 
@@ -106,10 +199,17 @@ def review_histories():
 @admin_bp.get("/users")
 @roles_required("admin")
 def list_users():
+    q = (request.args.get("q") or "").strip()
     role = request.args.get("role")
     active = request.args.get("is_active")
-    sql = "SELECT id, email, role, is_active, created_at FROM users WHERE 1=1"
+    sql = """SELECT u.id, u.email, u.role, u.is_active, u.created_at,
+                     p.full_name, c.company_name
+              FROM users u LEFT JOIN student_profiles p ON p.user_id = u.id
+              LEFT JOIN companies c ON c.user_id = u.id WHERE 1=1"""
     params = []
+    if q:
+        sql += " AND (fold(u.email) LIKE ? ESCAPE '\\' OR fold(p.full_name) LIKE ? ESCAPE '\\' OR fold(c.company_name) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(q)] * 3)
     if role:
         if role not in ALL_ROLES:
             return jsonify({"error": "invalid_role"}), 400
@@ -118,7 +218,7 @@ def list_users():
     if active in ("0", "1"):
         sql += " AND is_active = ?"
         params.append(int(active))
-    sql += " ORDER BY created_at DESC"
+    sql += " ORDER BY u.created_at DESC"
     return jsonify([dict(row) for row in get_db().execute(sql, params).fetchall()])
 
 
@@ -195,7 +295,19 @@ def deactivate_user(user_id):
 @admin_bp.get("/categories")
 @roles_required(*STAFF_ROLES)
 def list_categories():
-    rows = get_db().execute("SELECT * FROM job_categories ORDER BY name").fetchall()
+    q = (request.args.get("q") or "").strip()
+    active = request.args.get("is_active")
+    if active not in (None, "", "0", "1"):
+        return jsonify({"error": "invalid_input", "message": "is_active phải là 0 hoặc 1."}), 400
+    sql = "SELECT * FROM job_categories WHERE 1=1"
+    params = []
+    if q:
+        sql += " AND fold(name) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(q))
+    if active in ("0", "1"):
+        sql += " AND is_active = ?"
+        params.append(int(active))
+    rows = get_db().execute(sql + " ORDER BY name", params).fetchall()
     return jsonify([dict(row) for row in rows])
 
 
@@ -262,7 +374,23 @@ def delete_category(category_id):
 @admin_bp.get("/career-contents")
 @roles_required(*STAFF_ROLES)
 def list_all_career_contents():
-    rows = get_db().execute("SELECT * FROM career_contents ORDER BY updated_at DESC").fetchall()
+    q = (request.args.get("q") or "").strip()
+    category = (request.args.get("category") or "").strip()
+    status = (request.args.get("status") or "").strip()
+    if status and status not in {"draft", "published"}:
+        return jsonify({"error": "invalid_status", "message": "status phải là draft hoặc published."}), 400
+    sql = "SELECT * FROM career_contents WHERE 1=1"
+    params = []
+    if q:
+        sql += " AND (fold(title) LIKE ? ESCAPE '\\' OR fold(summary) LIKE ? ESCAPE '\\' OR fold(body) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(q)] * 3)
+    if category:
+        sql += " AND category = ?"
+        params.append(category)
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    rows = get_db().execute(sql + " ORDER BY updated_at DESC", params).fetchall()
     return jsonify([dict(row) for row in rows])
 
 

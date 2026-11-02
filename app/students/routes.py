@@ -46,9 +46,11 @@ def recommendations():
     skills = {item.strip().lower() for item in (profile["skills"] or "").replace(";", ",").split(",") if item.strip()}
     rows = db.execute("""
         SELECT j.id, j.title, j.description, j.location, j.job_type, j.major_required,
-               j.skills_required, j.deadline, c.company_name
+               j.skills_required, j.salary_text, j.saturday_policy, j.deadline, j.category_id,
+               cat.name AS category_name, c.company_name
         FROM jobs j JOIN companies c ON c.id = j.company_id
         JOIN users cu ON cu.id = c.user_id
+        LEFT JOIN job_categories cat ON cat.id = j.category_id
         WHERE j.status = 'approved' AND c.approval_status = 'approved' AND cu.is_active = 1
           AND (j.deadline IS NULL OR date(j.deadline) >= date('now'))
     """).fetchall()

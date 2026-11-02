@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tổng quan tài khoản · NEU Career</title><link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body class="dashboard-page">
+<header class="topbar"><div class="wrap nav"><a class="brand" href="/">NEU<span>Career</span></a><nav><a href="/">Tìm việc</a></nav><div class="nav-actions"><a class="btn btn-outline" href="/">Trang chủ</a><button class="btn btn-outline" id="logoutButton">Đăng xuất</button></div></div></header>
+<main class="wrap dashboard-main"><p class="eyebrow blue">KHU VỰC TÀI KHOẢN</p><h1>Chào mừng bạn đến với NEU Career</h1><p class="dashboard-lead">{% if role == 'student' %}Quản lý hồ sơ, CV và theo dõi các vị trí bạn đã ứng tuyển.{% elif role == 'business' %}Quản lý hồ sơ doanh nghiệp, tin tuyển dụng và ứng viên.{% else %}Quản lý hoạt động và nội dung trên NEU Career.{% endif %}</p>
+<div class="dashboard-grid">
+{% if role == 'student' %}<a class="dashboard-card" href="/#student"><span>01</span><h2>Hồ sơ & ứng tuyển</h2><p>Cập nhật hồ sơ, tải CV và xem lịch sử ứng tuyển.</p><b>Mở khu vực sinh viên →</b></a>{% elif role == 'business' %}<a class="dashboard-card" href="/#jobs"><span>01</span><h2>Tin tuyển dụng</h2><p>Quản lý tin tuyển dụng và theo dõi hồ sơ ứng viên.</p><b>Xem cơ hội tuyển dụng →</b></a>{% else %}<a class="dashboard-card" href="/"> <span>01</span><h2>Quản trị hệ thống</h2><p>Mở hệ thống quản trị NEU Career.</p><b>Tiếp tục →</b></a>{% endif %}
+<a class="dashboard-card" href="/#jobs"><span>02</span><h2>Khám phá cơ hội</h2><p>Tìm kiếm việc làm và chương trình thực tập mới nhất.</p><b>Xem việc làm →</b></a></div></main>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script></body></html>

@@ -7,10 +7,21 @@ career_bp = Blueprint("career", __name__)
 
 @career_bp.get("")
 def list_published_content():
-    rows = get_db().execute("""
+    keyword = (request.args.get("q") or "").strip()
+    category = (request.args.get("category") or "").strip()
+    sql = """
         SELECT id, title, summary, category, created_at, updated_at
-        FROM career_contents WHERE status = 'published' ORDER BY created_at DESC
-    """).fetchall()
+        FROM career_contents WHERE status = 'published'
+    """
+    params = []
+    if keyword:
+        sql += " AND (title LIKE ? OR summary LIKE ? OR body LIKE ?)"
+        params.extend([f"%{keyword}%"] * 3)
+    if category:
+        sql += " AND category = ?"
+        params.append(category)
+    sql += " ORDER BY created_at DESC"
+    rows = get_db().execute(sql, params).fetchall()
     return jsonify([dict(row) for row in rows])
 
 
