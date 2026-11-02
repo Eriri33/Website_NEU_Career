@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập nhà tuyển dụng - NEU Career</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Mulish:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/neu-tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+</head>
+<body class="bz auth">
+  <div class="auth-grid">
+    <section class="auth-hero" aria-label="Giới thiệu">
+      <a class="brand" href="/">
+        <img src="{{ url_for('static', filename='img/neu-logo.png') }}" alt="" width="46" height="46">
+        <span><b>NEU Career</b><small>Đại học Kinh tế Quốc dân</small></span>
+      </a>
+      <div>
+        <div class="rule"></div>
+        <h1>Đăng tin, nhận hồ sơ và chọn đúng ứng viên từ sinh viên NEU.</h1>
+        <p>Tạo hồ sơ doanh nghiệp, đăng vị trí thực tập hoặc việc làm, rồi theo dõi từng hồ sơ ứng tuyển trong một nơi.</p>
+      </div>
+      <small>National Economics University</small>
+    </section>
+    <section class="auth-panel">
+      <div class="auth-card">
+        <h2 id="authTitle">Đăng nhập nhà tuyển dụng</h2>
+        <p class="lead" id="authLead">Dùng tài khoản doanh nghiệp để quản lý tin tuyển dụng và ứng viên.</p>
+        <div class="seg" role="tablist" aria-label="Chọn thao tác">
+          <button type="button" role="tab" id="tabLogin" aria-selected="true" aria-controls="formLogin">Đăng nhập</button>
+          <button type="button" role="tab" id="tabRegister" aria-selected="false" aria-controls="formRegister">Đăng ký doanh nghiệp</button>
+        </div>
+        <div class="form-error" id="authError" role="alert" hidden></div>
+        <div class="banner banner-info" id="authNotice" hidden><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg><div id="authNoticeText"></div></div>
+
+        <form id="formLogin" class="stack" novalidate>
+          <div class="field"><label for="loginEmail">Email</label><input class="input" id="loginEmail" type="email" autocomplete="username" required></div>
+          <div class="field"><label for="loginPassword">Mật khẩu</label>
+            <div class="pw-wrap"><input class="input" id="loginPassword" type="password" autocomplete="current-password" required><button type="button" class="toggle" data-toggle="loginPassword" aria-label="Hiện mật khẩu">Hiện</button></div>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" id="btnLogin">Đăng nhập</button>
+        </form>
+
+        <form id="formRegister" class="stack" novalidate hidden>
+          <div class="field"><label for="regEmail">Email công việc</label><input class="input" id="regEmail" type="email" autocomplete="username" required><span class="hint">Email này dùng để đăng nhập, không hiển thị với sinh viên.</span></div>
+          <div class="field"><label for="regPassword">Mật khẩu</label>
+            <div class="pw-wrap"><input class="input" id="regPassword" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="toggle" data-toggle="regPassword" aria-label="Hiện mật khẩu">Hiện</button></div>
+            <span class="hint">Tối thiểu 6 ký tự.</span>
+          </div>
+          <div class="field"><label for="regConfirm">Nhập lại mật khẩu</label><input class="input" id="regConfirm" type="password" autocomplete="new-password" required></div>
+          <button class="btn btn-primary btn-block" type="submit" id="btnRegister">Tạo tài khoản doanh nghiệp</button>
+          <p class="auth-foot" style="margin:0">Sau khi đăng ký, bạn hoàn thiện hồ sơ công ty và chờ nhà trường duyệt trước khi đăng tin.</p>
+        </form>
+      </div>
+    </section>
+  </div>
+  <script src="{{ url_for('static', filename='js/business/core.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/business/login.js') }}"></script>
+</body>
+</html>

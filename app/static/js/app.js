@@ -202,7 +202,7 @@ async function openJob(id) {
       ? (days !== null && days >= 0 ? `${j.deadline} (còn ${days} ngày)` : `${j.deadline} (đã hết hạn)`)
       : 'Không giới hạn';
 
-    const saturdayLabels = { off: 'Nghỉ thứ Bảy', work: 'Làm thứ Bảy', negotiable: 'Thỏa thuận', unknown: 'Chưa rõ' };
+    const saturdayLabels = { off: 'Nghỉ thứ Bảy', working: 'Làm thứ Bảy', negotiable: 'Thỏa thuận', unknown: 'Chưa rõ' };
 
     $('#modalContent').innerHTML = `
       <div class="job-detail-header">

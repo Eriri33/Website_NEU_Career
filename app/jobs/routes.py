@@ -49,7 +49,7 @@ def list_jobs():
     if skills:
         sql += " AND (j.skills_required LIKE ? OR j.description LIKE ?)"
         params.extend([f"%{skills}%"] * 2)
-    if saturday_policy in {"off", "work", "negotiable", "unknown"}:
+    if saturday_policy in {"off", "working", "negotiable", "unknown"}:
         sql += " AND j.saturday_policy = ?"
         params.append(saturday_policy)
     if posted_within in {1, 3, 7, 30}:

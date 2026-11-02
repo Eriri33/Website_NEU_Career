@@ -1,0 +1,36 @@
+{% extends "business/base.html" %}
+{% block title %}Ứng viên{% endblock %}
+{% block heading %}Ứng viên{% endblock %}
+{% block subheading %}<span class="sub">Hồ sơ sinh viên ứng tuyển vào các tin của công ty</span>{% endblock %}
+{% block actions %}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="tabs" role="tablist" aria-label="Lọc theo trạng thái hồ sơ" id="statusTabs"></div>
+  <form class="toolbar" id="filters" role="search" aria-label="Tìm và lọc ứng viên" autocomplete="off" style="grid-template-columns:minmax(220px,1.6fr) minmax(180px,1.2fr) minmax(150px,1fr)">
+    <div class="field"><label for="fQ">Từ khóa</label>
+      <div class="input-icon"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input class="input" id="fQ" type="search" placeholder="Tên, email, ngành hoặc kỹ năng"></div></div>
+    <div class="field"><label for="fJob">Tin tuyển dụng</label><select class="select" id="fJob"><option value="">Tất cả tin</option></select></div>
+    <div class="field"><label for="fSort">Sắp xếp</label><select class="select" id="fSort"><option value="latest">Nộp gần nhất</option><option value="oldest">Nộp lâu nhất</option></select></div>
+  </form>
+  <div class="result-bar" id="resultBar" aria-live="polite"></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Ứng viên</th><th>Ngành và kỹ năng</th><th>Vị trí ứng tuyển</th><th>Ngày nộp</th><th>Trạng thái</th><th><span class="sr-only">Thao tác</span></th></tr></thead>
+      <tbody id="appRows"></tbody>
+    </table>
+  </div>
+  <div id="appState"></div>
+</section>
+{% endblock %}
+{% block drawer %}
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="drawer-head">
+    <div class="avatar" id="drawerAvatar" aria-hidden="true"></div>
+    <div style="min-width:0"><h2 id="drawerTitle">Hồ sơ ứng viên</h2><div id="drawerSub" class="muted truncate"></div></div>
+    <button type="button" class="icon-btn" id="drawerClose" aria-label="Đóng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</aside>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/applicants.js') }}"></script>{% endblock %}

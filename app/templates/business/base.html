@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nhà tuyển dụng{% endblock %} - NEU Career</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Mulish:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/neu-tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/business.css') }}">
+</head>
+<body class="bz" data-page="{{ page }}" data-job-id="{{ job_id|default('') }}" data-mode="{{ mode|default('') }}">
+  {% include "business/_icons.html" %}
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Điều hướng nhà tuyển dụng">
+      <a class="brand" href="{{ url_for('business_ui.dashboard') }}">
+        <img src="{{ url_for('static', filename='img/neu-logo.png') }}" alt="" width="46" height="46">
+        <span><b>NEU Career</b><small>Dành cho nhà tuyển dụng</small></span>
+      </a>
+      <nav class="nav">
+        <a href="{{ url_for('business_ui.dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Tổng quan</a>
+        <a href="{{ url_for('business_ui.jobs') }}" {% if page == 'jobs' %}aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-briefcase"/></svg>Tin tuyển dụng</a>
+        <a href="{{ url_for('business_ui.applicants') }}" {% if page == 'applicants' %}aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Ứng viên<span class="count" id="navBadge" hidden></span></a>
+        <a href="{{ url_for('business_ui.profile') }}" {% if page == 'profile' %}aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-building"/></svg>Hồ sơ công ty</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="co truncate" id="sideCompany">Đang tải…</div>
+        <div class="em truncate" id="sideEmail"></div>
+        <button type="button" class="btn-logout" id="btnLogout"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-logout"/></svg>Đăng xuất</button>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <button type="button" class="menu-btn" id="menuBtn" aria-label="Mở menu" aria-controls="sidebar" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
+        <div>
+          <h1>{% block heading %}{% endblock %}</h1>
+          {% block subheading %}{% endblock %}
+        </div>
+        <div class="actions">
+          {% block actions %}
+          <a class="btn btn-primary js-new-job" href="{{ url_for('business_ui.job_new') }}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span class="txt">Đăng tin mới</span></a>
+          {% endblock %}
+        </div>
+      </header>
+      <main class="content" id="main">
+        <div id="bannerSlot"></div>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  <div class="scrim" id="scrim" hidden></div>
+  {% block drawer %}{% endblock %}
+  <dialog class="confirm" id="confirmDialog" aria-labelledby="cfTitle">
+    <form method="dialog">
+      <div class="body"><h3 id="cfTitle"></h3><p id="cfMsg"></p></div>
+      <div class="foot">
+        <button class="btn btn-ghost" value="cancel" id="cfCancel">Hủy</button>
+        <button class="btn btn-primary" value="ok" id="cfOk">Xác nhận</button>
+      </div>
+    </form>
+  </dialog>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/business/core.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

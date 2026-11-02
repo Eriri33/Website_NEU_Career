@@ -65,10 +65,10 @@ CREATE TABLE IF NOT EXISTS jobs (
         CHECK (job_type IN ('internship', 'full_time', 'part_time', 'contract')),
     major_required TEXT NOT NULL DEFAULT '',
     skills_required TEXT NOT NULL DEFAULT '',
-    salary_text TEXT NOT NULL DEFAULT '',
-    saturday_policy TEXT NOT NULL DEFAULT 'unknown'
-        CHECK (saturday_policy IN ('off', 'work', 'negotiable', 'unknown')),
     deadline TEXT,
+    saturday_policy TEXT NOT NULL DEFAULT 'unknown'
+        CHECK (saturday_policy IN ('off', 'working', 'negotiable', 'unknown')),
+    salary_text TEXT NOT NULL DEFAULT 'Thỏa thuận',
     status TEXT NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'approved', 'rejected', 'closed')),
     review_note TEXT NOT NULL DEFAULT '',
@@ -125,3 +125,27 @@ CREATE INDEX IF NOT EXISTS idx_jobs_category_id ON jobs(category_id);
 CREATE INDEX IF NOT EXISTS idx_applications_student_id ON applications(student_id);
 CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id);
 CREATE INDEX IF NOT EXISTS idx_review_entity ON review_histories(entity_type, entity_id);
+
+-- =========================================
+-- ADMINISTRATIVE UNITS
+-- Tinh/Thanh pho va Phuong/Xa
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS provinces (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS wards (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    level TEXT NOT NULL,
+    province_code TEXT NOT NULL,
+    FOREIGN KEY (province_code)
+        REFERENCES provinces(code)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_wards_province_code
+ON wards(province_code);

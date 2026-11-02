@@ -58,7 +58,7 @@ class TV1TestCase(unittest.TestCase):
         self.approved_job_id = cur.lastrowid
 
         cur.execute("""INSERT INTO jobs (company_id, category_id, title, description, location, job_type, salary_text, saturday_policy, status)
-                       VALUES (?, ?, 'Secret Pending Job', 'Desc', 'Hanoi', 'internship', 'Thoa thuan', 'work', 'pending')""",
+                       VALUES (?, ?, 'Secret Pending Job', 'Desc', 'Hanoi', 'internship', 'Thoa thuan', 'working', 'pending')""",
                     (comp_id, cat_id))
         self.pending_job_id = cur.lastrowid
 
@@ -92,7 +92,7 @@ class TV1TestCase(unittest.TestCase):
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0]["title"], "Python Developer")
 
-        res2 = self.client.get("/api/jobs?saturday_policy=work")
+        res2 = self.client.get("/api/jobs?saturday_policy=working")
         self.assertEqual(len(res2.get_json()), 0)
 
     def test_student_apply_and_duplicate_check(self):

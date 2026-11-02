@@ -1,0 +1,33 @@
+:root {
+  --neu-blue: #00528C;
+  --neu-blue-700: #003F6D;
+  --neu-blue-900: #00294A;
+  --neu-blue-300: #7FB0D6;
+  --neu-blue-100: #DCEAF5;
+  --neu-blue-50: #EFF5FA;
+  --neu-red: #C41212;
+  --neu-red-50: #FBEAEA;
+  --neu-gold: #FFC101;
+  --neu-gold-50: #FFF5D1;
+  --neu-gold-ink: #6F5200;
+  --neu-grey: #B2B2B2;
+  --neu-white: #FFFFFF;
+
+  --success: #17623D;
+  --success-50: #E3F3EA;
+
+  --ink: #14202C;
+  --ink-2: #44525F;
+  --ink-3: #66737F;
+  --line: #DCE3EA;
+  --line-strong: #C6D0DA;
+  --bg: #F2F5F9;
+
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Mulish", "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --focus-ring: 0 0 0 3px rgba(0, 82, 140, .28);
+}

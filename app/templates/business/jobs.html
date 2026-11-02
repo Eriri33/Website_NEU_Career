@@ -1,0 +1,27 @@
+{% extends "business/base.html" %}
+{% block title %}Tin tuyển dụng{% endblock %}
+{% block heading %}Tin tuyển dụng{% endblock %}
+{% block subheading %}<span class="sub">Quản lý, tìm kiếm và đóng các tin của công ty</span>{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="tabs" role="tablist" aria-label="Lọc theo trạng thái tin" id="statusTabs"></div>
+  <form class="toolbar" id="filters" role="search" aria-label="Tìm và lọc tin tuyển dụng" autocomplete="off">
+    <div class="field"><label for="fQ">Từ khóa</label>
+      <div class="input-icon"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input class="input" id="fQ" type="search" placeholder="Tiêu đề hoặc mô tả công việc"></div></div>
+    <div class="field"><label for="fCategory">Danh mục</label><select class="select" id="fCategory"><option value="">Tất cả danh mục</option></select></div>
+    <div class="field" id="fLocationField"><label for="fLocation">Địa điểm</label><select class="select" id="fLocation"><option value="">Tất cả địa điểm</option></select></div>
+    <div class="field"><label for="fType">Loại công việc</label><select class="select" id="fType">
+      <option value="">Tất cả loại</option><option value="internship">Thực tập</option><option value="full_time">Toàn thời gian</option><option value="part_time">Bán thời gian</option><option value="contract">Hợp đồng</option></select></div>
+    <div class="field"><label for="fSort">Sắp xếp</label><select class="select" id="fSort"><option value="latest">Mới đăng nhất</option><option value="deadline_soon">Hạn nộp gần nhất</option></select></div>
+  </form>
+  <div class="result-bar" id="resultBar" aria-live="polite"></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Tin tuyển dụng</th><th>Địa điểm</th><th>Hạn nộp</th><th>Hồ sơ</th><th>Trạng thái</th><th><span class="sr-only">Thao tác</span></th></tr></thead>
+      <tbody id="jobRows"></tbody>
+    </table>
+  </div>
+  <div id="jobState"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/jobs.js') }}"></script>{% endblock %}
