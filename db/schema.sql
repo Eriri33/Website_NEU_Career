@@ -149,9 +149,10 @@ CREATE TABLE IF NOT EXISTS provinces (
 
 CREATE TABLE IF NOT EXISTS wards (
     code TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     level TEXT NOT NULL,
     province_code TEXT NOT NULL,
+    UNIQUE (province_code, name),
     FOREIGN KEY (province_code)
         REFERENCES provinces(code)
         ON UPDATE CASCADE
