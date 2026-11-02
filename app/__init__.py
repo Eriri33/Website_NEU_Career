@@ -1,5 +1,5 @@
 from pathlib import Path
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, session
 from config import Config
 from app.database import init_app, init_db_command
 
@@ -44,6 +44,21 @@ def create_app(test_config=None):
     @app.get("/")
     def index():
         return render_template("index.html")
+
+    @app.get("/login")
+    def login_page():
+        return render_template("auth.html", mode="login")
+
+    @app.get("/register")
+    def register_page():
+        return render_template("auth.html", mode="register")
+
+    @app.get("/dashboard")
+    def dashboard():
+        if not session.get("user_id"):
+            from flask import redirect, url_for
+            return redirect(url_for("login_page"))
+        return render_template("dashboard.html", role=session.get("role"))
 
     @app.get("/api/health")
     def health():
