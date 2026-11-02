@@ -1,0 +1,9 @@
+{% extends "business/base.html" %}
+{% block title %}Chi tiết tin{% endblock %}
+{% block heading %}Chi tiết tin tuyển dụng{% endblock %}
+{% block actions %}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('business_ui.jobs') }}"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg>Về danh sách tin</a>
+<div id="detailRoot"><section class="card card-pad"><span class="skel" style="width:50%;height:26px"></span><span class="skel" style="width:30%;margin-top:14px"></span></section></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/job_detail.js') }}"></script>{% endblock %}
