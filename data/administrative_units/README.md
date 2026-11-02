@@ -277,4 +277,3 @@ Nguồn: https://github.com/mantisvn/Vietnamese-Administrative-Units-Dataset
 
 
 File CSV được lưu trong thư mục này để các thành viên có thể sử dụng chung và tái tạo dữ liệu trên máy cá nhân.
-

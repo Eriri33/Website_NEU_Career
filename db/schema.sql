@@ -48,11 +48,25 @@ CREATE TABLE IF NOT EXISTS companies (
 
 CREATE TABLE IF NOT EXISTS job_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER,
+    level INTEGER NOT NULL DEFAULT 1
+        CHECK (level IN (1, 2, 3)),
     name TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL DEFAULT '',
-    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    is_active INTEGER NOT NULL DEFAULT 1
+        CHECK (is_active IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (parent_id)
+        REFERENCES job_categories(id)
+        ON DELETE RESTRICT
+
 );
+CREATE INDEX IF NOT EXISTS idx_job_categories_parent_id
+ON job_categories(parent_id);
+
+CREATE INDEX IF NOT EXISTS idx_job_categories_level
+ON job_categories(level);
 
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,7 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_review_entity ON review_histories(entity_type, en
 
 CREATE TABLE IF NOT EXISTS provinces (
     code TEXT PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS wards (
@@ -141,11 +155,12 @@ CREATE TABLE IF NOT EXISTS wards (
     name TEXT NOT NULL,
     level TEXT NOT NULL,
     province_code TEXT NOT NULL,
+    UNIQUE (province_code, name),
     FOREIGN KEY (province_code)
         REFERENCES provinces(code)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+    UNIQUE (province_code, name)
 );
-
 CREATE INDEX IF NOT EXISTS idx_wards_province_code
 ON wards(province_code);

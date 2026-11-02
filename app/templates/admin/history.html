@@ -1,0 +1,4 @@
+{% extends "admin/base.html" %}{% block title %}Lịch sử kiểm duyệt{% endblock %}{% block page_key %}history{% endblock %}{% block breadcrumb %}Lịch sử kiểm duyệt{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">KIỂM DUYỆT</div><h1>Lịch sử kiểm duyệt</h1><p>Theo dõi các quyết định phê duyệt và từ chối trên hệ thống.</p></div></div>
+<section class="panel"><div class="toolbar"><select id="historyType"><option value="">Tất cả đối tượng</option><option value="company">Doanh nghiệp</option><option value="job">Tin tuyển dụng</option></select><button class="btn btn-light" id="refreshHistory">↻ Làm mới</button></div><div class="table-wrap"><table><thead><tr><th>ĐỐI TƯỢNG</th><th>MÃ</th><th>QUYẾT ĐỊNH</th><th>NGƯỜI DUYỆT</th><th>GHI CHÚ</th><th>THỜI GIAN</th></tr></thead><tbody id="historyTable"><tr><td colspan="6" class="empty-cell">Đang tải dữ liệu...</td></tr></tbody></table></div></section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}{% block title %}Tin tuyển dụng{% endblock %}{% block page_key %}jobs{% endblock %}{% block breadcrumb %}Tin tuyển dụng{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">KIỂM DUYỆT</div><h1>Tin tuyển dụng</h1><p>Kiểm tra tin tuyển dụng thuộc doanh nghiệp đã được phê duyệt.</p></div><span class="count-chip" id="jobCount">0 tin</span></div>
+<section class="panel"><div class="toolbar"><div class="search-box"><span>⌕</span><input id="jobSearch" placeholder="Tìm tiêu đề hoặc tên doanh nghiệp..."></div><button class="btn btn-light" id="refreshJobs">↻ Làm mới</button></div><div class="table-wrap"><table><thead>
+    <tr>
+        <th>VỊ TRÍ TUYỂN DỤNG</th>
+        <th>DOANH NGHIỆP</th>
+        <th>ĐỊA ĐIỂM</th>
+        <th>MÔ TẢ</th>
+        <th>NGÀY GỬI</th>
+        <th>TRẠNG THÁI</th>
+        <th>THAO TÁC</th>
+    </tr>
+</thead><tbody id="jobsTable"><tr><td colspan="6" class="empty-cell">Đang tải dữ liệu...</td></tr></tbody></table></div></section>
+{% endblock %}

@@ -455,6 +455,51 @@ Chỉ được sửa khi đơn ở trạng thái `submitted`. `DELETE` chỉ rú
 
 ## 9. Admin và kiểm duyệt — `/api/admin`
 
+### 9.0. Dữ liệu tổng quan Dashboard
+
+`GET /api/admin/dashboard/summary` cho cả `admin` và `moderator` sử dụng. Endpoint trả số liệu tổng hợp lấy trực tiếp từ SQLite, không trả danh sách tài khoản/đơn cá nhân.
+
+Response `200` có cấu trúc:
+
+```json
+{
+  "role": "admin",
+  "stats": {
+    "active_users": 12,
+    "active_students": 8,
+    "active_business_accounts": 3,
+    "companies_total": 3,
+    "companies_approved": 2,
+    "companies_pending": 1,
+    "jobs_total": 7,
+    "jobs_approved": 4,
+    "jobs_pending": 1,
+    "applications_total": 9,
+    "applications_pending": 5,
+    "categories_total": 6,
+    "categories_active": 5,
+    "contents_total": 4,
+    "contents_published": 3,
+    "contents_draft": 1,
+    "reviews_today": 2
+  },
+  "recent_reviews": [
+    {
+      "id": 8,
+      "entity_type": "job",
+      "entity_id": 12,
+      "action": "approved",
+      "note": "Nội dung hợp lệ.",
+      "created_at": "2026-10-31 09:30:00",
+      "reviewer_email": "moderator@example.com",
+      "entity_name": "Python Intern"
+    }
+  ]
+}
+```
+
+Các số liệu JSON trên chỉ minh họa cấu trúc, không phải dữ liệu cố định. `jobs_approved` chỉ đếm tin đang được công khai: tin đã duyệt, doanh nghiệp đã duyệt, tài khoản doanh nghiệp đang hoạt động và tin chưa hết hạn. `recent_reviews` trả tối đa 8 quyết định kiểm duyệt mới nhất. Các vai trò không phải Admin vẫn được xem số liệu tổng hợp, nhưng giao diện Moderator không hiển thị mục quản lý tài khoản.
+
 ### 9.1. Kiểm duyệt doanh nghiệp và việc làm
 
 Các endpoint này cho `admin` và `moderator` sử dụng.
