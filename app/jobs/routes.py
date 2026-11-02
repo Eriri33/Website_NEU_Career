@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.database import get_db
+from app.textutil import like_pattern
 
 jobs_bp = Blueprint("jobs", __name__)
 
@@ -32,14 +33,14 @@ def list_jobs():
     """
     params = []
     if keyword:
-        sql += " AND (j.title LIKE ? OR j.description LIKE ? OR c.company_name LIKE ?)"
-        params.extend([f"%{keyword}%"] * 3)
+        sql += " AND (fold(j.title) LIKE ? ESCAPE '\\' OR fold(j.description) LIKE ? ESCAPE '\\' OR fold(c.company_name) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(keyword)] * 3)
     if major:
-        sql += " AND (j.major_required = '' OR j.major_required LIKE ?)"
-        params.append(f"%{major}%")
+        sql += " AND (j.major_required = '' OR fold(j.major_required) LIKE ? ESCAPE '\\')"
+        params.append(like_pattern(major))
     if location:
-        sql += " AND j.location LIKE ?"
-        params.append(f"%{location}%")
+        sql += " AND fold(j.location) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(location))
     if job_type:
         sql += " AND j.job_type = ?"
         params.append(job_type)
@@ -47,8 +48,8 @@ def list_jobs():
         sql += " AND j.category_id IN (" + ",".join("?" for _ in category_ids) + ")"
         params.extend(category_ids)
     if skills:
-        sql += " AND (j.skills_required LIKE ? OR j.description LIKE ?)"
-        params.extend([f"%{skills}%"] * 2)
+        sql += " AND (fold(j.skills_required) LIKE ? ESCAPE '\\' OR fold(j.description) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(skills)] * 2)
     if saturday_policy in {"off", "working", "negotiable", "unknown"}:
         sql += " AND j.saturday_policy = ?"
         params.append(saturday_policy)

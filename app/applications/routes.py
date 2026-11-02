@@ -2,6 +2,7 @@ import sqlite3
 from flask import Blueprint, request, jsonify, session
 from app.database import get_db
 from app.auth.guards import roles_required
+from app.textutil import like_pattern
 
 applications_bp = Blueprint("applications", __name__)
 
@@ -49,8 +50,8 @@ def my_applications():
     """
     params = [session["user_id"]]
     if keyword:
-        sql += " AND (j.title LIKE ? OR c.company_name LIKE ?)"
-        params.extend([f"%{keyword}%"] * 2)
+        sql += " AND (fold(j.title) LIKE ? ESCAPE '\\' OR fold(c.company_name) LIKE ? ESCAPE '\\')"
+        params.extend([like_pattern(keyword)] * 2)
     if status in {"submitted", "reviewing", "accepted", "rejected", "withdrawn"}:
         sql += " AND a.status = ?"
         params.append(status)

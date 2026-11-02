@@ -150,6 +150,18 @@ async function loadCategories() {
   }
 }
 
+/* TV2 owns the province/ward dataset; TV1 reuses it for public search. */
+async function loadLocationOptions() {
+  try {
+    const provinces = await api('/api/locations/provinces');
+    $('#locationOptions').innerHTML = provinces.map(p =>
+      `<option value="${esc(p.name)}"></option>`
+    ).join('');
+  } catch (_) {
+    // Free-text location search remains available if the shared dataset is unavailable.
+  }
+}
+
 function chooseCategory(id) {
   $$('#categoryFilters input').forEach(x => x.checked = (x.value == id));
   $('#heroCategory').value = id;
@@ -627,6 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== INIT =====
   loadCategories();
+  loadLocationOptions();
   loadJobs();
   loadCareer();
   checkSession();

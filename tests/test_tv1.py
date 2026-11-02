@@ -51,6 +51,8 @@ class TV1TestCase(unittest.TestCase):
         # Categories
         cur.execute("INSERT INTO job_categories (name) VALUES ('CNTT')")
         cat_id = cur.lastrowid
+        cur.execute("INSERT INTO provinces (code, name) VALUES ('01', 'Thành phố Hà Nội')")
+        cur.execute("INSERT INTO wards (code, name, level, province_code) VALUES ('00001', 'Phường Ba Đình', 'Phường', '01')")
         # Jobs (1 approved, 1 pending)
         cur.execute("""INSERT INTO jobs (company_id, category_id, title, description, location, job_type, salary_text, saturday_policy, status)
                        VALUES (?, ?, 'Python Developer', 'Desc', 'Hanoi', 'full_time', '15tr', 'off', 'approved')""",
@@ -122,6 +124,30 @@ class TV1TestCase(unittest.TestCase):
 
         res_none = self.client.get("/api/applications/me?status=accepted")
         self.assertEqual(len(res_none.get_json()), 0)
+
+    def test_shared_location_and_accent_insensitive_public_search(self):
+        locations = self.client.get("/api/locations/provinces?q=ha noi")
+        self.assertEqual(locations.status_code, 200)
+        self.assertEqual(locations.get_json()[0]["code"], "01")
+
+        jobs = self.client.get("/api/jobs", query_string={"q": "python", "location": "hanoi"})
+        self.assertEqual(jobs.status_code, 200)
+        self.assertEqual([job["id"] for job in jobs.get_json()], [self.approved_job_id])
+
+    def test_admin_moderation_filters_share_business_data(self):
+        self.client.post("/api/auth/login", json={"email": "admin@test.com", "password": "pass123"})
+
+        pending = self.client.get("/api/admin/pending/jobs", query_string={"q": "secret", "job_type": "internship"})
+        self.assertEqual(pending.status_code, 200)
+        self.assertEqual([job["id"] for job in pending.get_json()], [self.pending_job_id])
+
+        jobs = self.client.get("/api/admin/jobs", query_string={"status": "approved", "location": "hanoi"})
+        self.assertEqual(jobs.status_code, 200)
+        self.assertEqual([job["id"] for job in jobs.get_json()], [self.approved_job_id])
+
+        users = self.client.get("/api/admin/users", query_string={"q": "test student", "role": "student"})
+        self.assertEqual(users.status_code, 200)
+        self.assertEqual(users.get_json()[0]["email"], "student@test.com")
 
 
 if __name__ == "__main__":
