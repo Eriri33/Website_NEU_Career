@@ -1,0 +1,26 @@
+{% extends "business/base.html" %}
+{% block title %}Hồ sơ công ty{% endblock %}
+{% block heading %}Hồ sơ công ty{% endblock %}
+{% block subheading %}<span class="sub">Thông tin sinh viên và nhà trường nhìn thấy về công ty</span>{% endblock %}
+{% block actions %}{% endblock %}
+{% block content %}
+<div id="welcomeNotice"></div>
+<div id="profileError" hidden></div>
+<div class="form-layout" id="profileLayout">
+  <form class="card card-pad stack" id="profileForm" novalidate>
+    <div class="field" data-field="company_name"><label for="company_name">Tên công ty<span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="company_name" maxlength="150" required><div class="err" role="alert"></div></div>
+    <div class="field" data-field="website"><label for="website">Website</label>
+      <input class="input" id="website" inputmode="url" maxlength="255" placeholder="https://congty.vn"><span class="hint">Bắt đầu bằng http:// hoặc https://. Nếu bạn nhập thiếu, hệ thống tự thêm https://.</span><div class="err" role="alert"></div></div>
+    <div class="field" data-field="description"><label for="description">Giới thiệu công ty</label>
+      <textarea class="textarea" id="description" maxlength="5000" placeholder="Lĩnh vực hoạt động, quy mô, văn hóa làm việc, cơ hội cho sinh viên…"></textarea>
+      <div class="counter"><span id="descCount">0</span>/5000</div><div class="err" role="alert"></div></div>
+    <div><button class="btn btn-primary" type="submit" id="btnSave">Lưu hồ sơ</button></div>
+  </form>
+  <aside class="aside-sticky">
+    <section class="card card-pad" id="statusCard"><span class="skel" style="width:60%"></span></section>
+    <section class="card card-pad" id="checkCard"></section>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/profile.js') }}"></script>{% endblock %}

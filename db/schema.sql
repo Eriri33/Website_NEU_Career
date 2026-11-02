@@ -66,6 +66,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     major_required TEXT NOT NULL DEFAULT '',
     skills_required TEXT NOT NULL DEFAULT '',
     deadline TEXT,
+    saturday_policy TEXT NOT NULL DEFAULT 'unknown'
+        CHECK (saturday_policy IN ('off', 'working', 'negotiable', 'unknown')),
+    salary_text TEXT NOT NULL DEFAULT 'Thỏa thuận',
     status TEXT NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'approved', 'rejected', 'closed')),
     review_note TEXT NOT NULL DEFAULT '',

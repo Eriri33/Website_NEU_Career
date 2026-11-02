@@ -1,0 +1,89 @@
+# Module Business (TV2) — Bàn giao
+
+Phạm vi: hồ sơ doanh nghiệp, quản lý tin tuyển dụng, tìm/lọc ứng viên, cập nhật trạng thái đơn.
+
+## Chạy thử
+
+```powershell
+flask --app run.py init-db
+python scripts/import_administrative_units.py
+python scripts/seed_business_demo.py
+python run.py
+```
+
+Mở `http://127.0.0.1:5000/business/login` — `business@demo.neu.vn` / `demo1234`.
+`business2@demo.neu.vn` dùng để thử quyền sở hữu; `admin@demo.neu.vn` / `admin123` để duyệt.
+Chạy test: `python -m unittest tests.test_business tests.test_api -v`
+
+## Trang giao diện (`/business/*`)
+
+| URL | Nội dung | API dùng |
+|---|---|---|
+| `/business/login` | Đăng nhập/đăng ký doanh nghiệp | `/api/auth/*` |
+| `/business/dashboard` | Số liệu, phễu trạng thái hồ sơ, việc cần chú ý | `/api/company/jobs`, `applications`, `applications/stats` |
+| `/business/jobs` | Danh sách + tìm/lọc tin, đóng tin | `GET /api/company/jobs`, `DELETE /api/company/jobs/<id>` |
+| `/business/jobs/new`, `/<id>/edit` | Form tạo/sửa tin (tỉnh → phường/xã từ DB) | `POST/PUT /api/company/jobs`, `/api/company/categories`, `/api/locations/*` |
+| `/business/jobs/<id>` | Chi tiết tin, trạng thái duyệt, hồ sơ của tin | `/api/company/jobs/<id>`, `applications*` |
+| `/business/applicants` | Tìm/lọc ứng viên, ngăn chi tiết, đổi trạng thái | `/api/company/applications*` |
+| `/business/profile` | Hồ sơ công ty, trạng thái duyệt | `GET/PUT /api/company/profile` |
+
+Mọi trang có trạng thái đang tải, rỗng, lỗi (có nút Thử lại). Không có dữ liệu giả trong JavaScript.
+
+## File thêm/sửa
+
+- Sửa: `app/__init__.py`, `app/database.py`, `app/companies/routes.py`, `db/schema.sql`
+- Mới (backend): `app/textutil.py`, `app/locations/`, `app/business_ui/`, `scripts/seed_business_demo.py`
+- Mới (frontend): `app/templates/business/*`, `app/static/css/{neu-tokens,business}.css`, `app/static/js/business/*`, `app/static/img/*`
+- Test: `tests/test_business.py` (24 ca)
+
+## Thay đổi body `POST/PUT /api/company/jobs` (so với contract mục 7.2)
+
+Thêm hai field tùy chọn (khớp contract mục 14):
+
+```json
+{
+  "salary_text": "5 - 7 triệu",
+  "saturday_policy": "off"
+}
+```
+
+`salary_text` tối đa 100 ký tự, rỗng thì lưu "Thỏa thuận". `saturday_policy` nhận `off`, `working`, `negotiable`, `unknown` (mặc định `unknown`).
+
+## Đề xuất bổ sung contract cho `/api/company/*`
+
+Các mục dưới đây đã có code + test trong `tests/test_business.py`.
+
+**Bộ lọc `GET /api/company/jobs`:** `q` (tiêu đề/mô tả), `status`, `category_id`, `location`, `job_type`, `sort=latest|deadline_soon` (tin không có hạn xếp cuối). Tất cả kết hợp AND. Giá trị không hợp lệ trả `400` (`invalid_status`, `invalid_sort`, `invalid_input`). Mỗi tin trả thêm: `application_count`, `new_application_count` (đơn `submitted`), `needs_re_review` (đang `pending` sau khi từng được duyệt/từ chối), `is_expired` (deadline đã qua).
+
+**Bộ lọc `GET /api/company/applications`:** `job_id`, `status`, `q` (tên/email/ngành/kỹ năng), `sort=latest|oldest`. Ràng buộc sở hữu (`c.user_id = session`) luôn áp dụng trước bộ lọc. Chi tiết đơn trả thêm `bio`, `job_status`.
+
+**Tìm kiếm không phân biệt hoa/thường và dấu tiếng Việt:** `q` và `location` được so khớp qua hàm SQL `fold()` (đăng ký trong `get_db()`), nên `ke toan` khớp `Kế toán`, `ha noi` khớp `Thành phố Hà Nội`. Ký tự `%` và `_` trong từ khóa được escape.
+
+| Method | Endpoint | Quyền | Mục đích |
+|---|---|---|---|
+| `GET` | `/api/company/applications/stats?job_id=&q=` | Business | Số đơn theo trạng thái trong phạm vi lọc, dùng cho tab đếm: `{"submitted":1,"reviewing":0,"accepted":0,"rejected":0,"withdrawn":0,"total":1}` |
+| `GET` | `/api/company/categories` | Business | Danh mục đang hoạt động `[{"id","name"}]` để chọn khi đăng tin |
+| `GET` | `/api/locations/provinces?q=` | Public | Tỉnh/thành từ bảng `provinces` |
+| `GET` | `/api/locations/provinces/<code>/wards?q=` | Public | Phường/xã của một tỉnh (`404` nếu mã tỉnh sai) |
+
+**Validation bổ sung:** hồ sơ `website` chỉ nhận `http://` hoặc `https://` (chặn `javascript:`); giới hạn độ dài `title` 150, `description` 10000, `location`/`major_required` 255, `skills_required` 500, `salary_text` 100, `company_name` 150; `deadline` mới không được ở quá khứ (giữ nguyên hạn cũ khi sửa tin thì được); `category_id` phải là danh mục đang hoạt động; trường văn bản phải là chuỗi.
+
+**Quy ước `jobs.location`:** vẫn là một chuỗi. Giao diện doanh nghiệp ghép `"<địa chỉ cụ thể>, <phường/xã>, <tỉnh/thành>"` theo tên trong `wards`/`provinces`; lọc công khai theo tỉnh vẫn dùng `location LIKE`.
+
+## Thay đổi chạm vào phần của TV3/TV1
+
+1. `db/schema.sql` + `migrate_db()` trong `app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14). Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
+2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`app/textutil.py`).
+3. Blueprint mới `/api/locations/*` đọc bảng `provinces`/`wards` chung (không đổi cấu trúc bảng).
+4. TV1 cần thêm `salary_text`, `saturday_policy` vào SELECT của `/api/jobs` để hiển thị/lọc; TV3 thêm vào danh sách admin.
+5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `app/business_ui/routes.py`.
+
+## Chưa làm / giới hạn
+
+- **Doanh nghiệp chưa xem được CV của ứng viên.** Contract hiện chỉ cho sinh viên tải CV của mình và bảng `applications` không gắn CV. Muốn có cần thêm `applications.cv_id` và endpoint tải cho business.
+- Hồ sơ công ty chỉ có tên, mô tả, website (đúng contract); chưa có logo, quy mô, địa chỉ.
+- Hàng chờ duyệt và UI admin thuộc TV3; hiện duyệt doanh nghiệp/tin phải gọi API (Postman) hoặc dùng seed.
+- Lưu hồ sơ công ty luôn đưa trạng thái về `pending` theo contract, kể cả khi nội dung không đổi (UI chặn lưu khi không có thay đổi và cảnh báo trước khi gửi duyệt lại).
+- Phân trang chưa có (list trả mảng JSON theo contract).
+- Google Fonts tải từ CDN; offline sẽ dùng font hệ thống.
+- Chưa có test tự động cho JavaScript; đã kiểm thử tay bằng trình duyệt (đăng nhập sai, lọc, tạo tin, đổi trạng thái, đăng ký mới, truy cập chéo).
