@@ -80,6 +80,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     major_required TEXT NOT NULL DEFAULT '',
     skills_required TEXT NOT NULL DEFAULT '',
     deadline TEXT,
+    saturday_policy TEXT NOT NULL DEFAULT 'unknown'
+        CHECK (saturday_policy IN ('off', 'working', 'negotiable', 'unknown')),
+    salary_text TEXT NOT NULL DEFAULT 'Thỏa thuận',
     status TEXT NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'approved', 'rejected', 'closed')),
     review_note TEXT NOT NULL DEFAULT '',
@@ -149,14 +152,14 @@ CREATE TABLE IF NOT EXISTS provinces (
 
 CREATE TABLE IF NOT EXISTS wards (
     code TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     level TEXT NOT NULL,
     province_code TEXT NOT NULL,
     FOREIGN KEY (province_code)
         REFERENCES provinces(code)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+    UNIQUE (province_code, name)
 );
-
 CREATE INDEX IF NOT EXISTS idx_wards_province_code
 ON wards(province_code);

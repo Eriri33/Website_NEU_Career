@@ -1,3 +1,4 @@
+from pathlib import Path
 from flask import Flask, jsonify, render_template
 from config import Config
 from app.database import init_app, init_db_command
@@ -12,6 +13,11 @@ def create_app(test_config=None):
     init_app(app)
     app.cli.add_command(init_db_command)
 
+    if Path(app.config["DATABASE"]).exists():
+        from app.database import get_db, migrate_db
+        with app.app_context():
+            migrate_db(get_db())
+
     from app.auth.routes import auth_bp
     from app.students.routes import students_bp
     from app.companies.routes import companies_bp
@@ -22,6 +28,7 @@ def create_app(test_config=None):
     from app.career.routes import career_bp
     from app.locations.routes import locations_bp
     from app.categories.routes import categories_bp
+    from app.business_ui.routes import business_ui_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(students_bp, url_prefix="/api/students")
@@ -33,6 +40,7 @@ def create_app(test_config=None):
     app.register_blueprint(career_bp, url_prefix="/api/career-contents")
     app.register_blueprint(locations_bp, url_prefix="/api/locations")
     app.register_blueprint(categories_bp, url_prefix="/api/categories")
+    app.register_blueprint(business_ui_bp, url_prefix="/business")
     @app.get("/")
     def index():
         return render_template("index.html")

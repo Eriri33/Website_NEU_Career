@@ -1,0 +1,33 @@
+{% extends "business/base.html" %}
+{% block title %}Tổng quan{% endblock %}
+{% block heading %}Tổng quan{% endblock %}
+{% block content %}
+<section class="welcome" aria-live="polite">
+  <h2 id="welcomeTitle"><span class="skel" style="width:280px;height:24px;background:rgba(255,255,255,.25)"></span></h2>
+  <p id="welcomeText"></p>
+  <div class="actions" id="welcomeActions"></div>
+</section>
+
+<div class="stats" id="stats" aria-label="Số liệu chính">
+  {% for i in range(4) %}<div class="card stat"><span class="skel" style="width:60px;height:30px"></span><span class="skel" style="width:110px;margin-top:10px"></span></div>{% endfor %}
+</div>
+
+<div id="dashError" hidden></div>
+<div class="cols" id="dashCols">
+  <div class="stack">
+    <section class="card">
+      <div class="card-head"><h2>Hồ sơ ứng tuyển theo trạng thái</h2><a href="{{ url_for('business_ui.applicants') }}">Xem tất cả ứng viên</a></div>
+      <div class="card-pad" id="pipelineBox"><span class="skel" style="height:14px"></span></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Hồ sơ mới nhất chờ xem</h2><a href="{{ url_for('business_ui.applicants') }}?status=submitted">Xem tất cả</a></div>
+      <ul class="list" id="latestList"><li><span class="skel" style="width:60%"></span></li></ul>
+    </section>
+  </div>
+  <section class="card">
+    <div class="card-head"><h2>Cần chú ý</h2></div>
+    <div id="attnList"><div class="attn"><span class="skel" style="width:80%"></span></div></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/dashboard.js') }}"></script>{% endblock %}

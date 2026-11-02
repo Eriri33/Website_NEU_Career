@@ -1,27 +1,62 @@
-
 from flask import Blueprint, request, jsonify
 from app.database import get_db
+from app.textutil import like_pattern
 
 locations_bp = Blueprint("locations", __name__)
 
 
 @locations_bp.get("/provinces")
-def get_provinces():
-    """Get all provinces and centrally governed cities."""
+def list_provinces():
+    q = (request.args.get("q") or "").strip()
+
+    sql = "SELECT code, name FROM provinces"
+    params = []
+
+    if q:
+        sql += " WHERE fold(name) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(q))
+
+    sql += " ORDER BY name"
+
+    rows = get_db().execute(sql, params).fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+def get_wards_by_province(province_code):
     db = get_db()
 
-    rows = db.execute("""
-        SELECT code, name
-        FROM provinces
-        ORDER BY name
-    """).fetchall()
+    province = db.execute(
+        "SELECT code, name FROM provinces WHERE code = ?",
+        (province_code,)
+    ).fetchone()
 
-    return jsonify([dict(row) for row in rows])
+    if not province:
+        return None, jsonify({
+            "error": "province_not_found",
+            "message": "Không tìm thấy tỉnh/thành phố."
+        }), 404
+
+    q = (request.args.get("q") or "").strip()
+
+    sql = """
+        SELECT code, name, level, province_code
+        FROM wards
+        WHERE province_code = ?
+    """
+    params = [province_code]
+
+    if q:
+        sql += " AND fold(name) LIKE ? ESCAPE '\\'"
+        params.append(like_pattern(q))
+
+    sql += " ORDER BY name"
+
+    rows = db.execute(sql, params).fetchall()
+    return jsonify([dict(row) for row in rows]), None, None
 
 
 @locations_bp.get("/wards")
 def get_wards():
-    """Get wards belonging to a selected province."""
     province_code = (request.args.get("province_code") or "").strip()
 
     if not province_code:
@@ -30,25 +65,19 @@ def get_wards():
             "message": "Vui lòng cung cấp mã tỉnh/thành phố."
         }), 400
 
-    db = get_db()
+    result, error, status = get_wards_by_province(province_code)
 
-    province = db.execute("""
-        SELECT code, name
-        FROM provinces
-        WHERE code = ?
-    """, (province_code,)).fetchone()
+    if error:
+        return error, status
 
-    if not province:
-        return jsonify({
-            "error": "province_not_found",
-            "message": "Không tìm thấy tỉnh/thành phố."
-        }), 404
+    return result
 
-    rows = db.execute("""
-        SELECT code, name, level, province_code
-        FROM wards
-        WHERE province_code = ?
-        ORDER BY name
-    """, (province_code,)).fetchall()
 
-    return jsonify([dict(row) for row in rows])
+@locations_bp.get("/provinces/<province_code>/wards")
+def list_wards(province_code):
+    result, error, status = get_wards_by_province(province_code)
+
+    if error:
+        return error, status
+
+    return result
