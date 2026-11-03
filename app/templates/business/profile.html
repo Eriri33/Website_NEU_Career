@@ -12,6 +12,25 @@
       <input class="input" id="company_name" maxlength="150" required><div class="err" role="alert"></div></div>
     <div class="field" data-field="website"><label for="website">Website</label>
       <input class="input" id="website" inputmode="url" maxlength="255" placeholder="https://congty.vn"><span class="hint">Bắt đầu bằng http:// hoặc https://. Nếu bạn nhập thiếu, hệ thống tự thêm https://.</span><div class="err" role="alert"></div></div>
+    <div class="grid-2">
+      <div class="field" data-field="company_size"><label for="company_size">Quy mô nhân sự</label>
+        <select class="select" id="company_size"><option value="">Chưa cập nhật</option>
+          <option value="1-9">1-9 nhân viên</option><option value="10-24">10-24 nhân viên</option><option value="25-99">25-99 nhân viên</option>
+          <option value="100-499">100-499 nhân viên</option><option value="500-999">500-999 nhân viên</option><option value="1000+">Từ 1000 nhân viên</option></select>
+        <div class="err" role="alert"></div></div>
+      <div class="field" data-field="industry"><label for="industry">Ngành nghề kinh doanh chính</label>
+        <input class="input" id="industry" list="industryList" maxlength="150" placeholder="Ví dụ: Công nghệ thông tin">
+        <datalist id="industryList"></datalist><div class="err" role="alert"></div></div>
+    </div>
+    <fieldset class="field" style="border:0;padding:0;margin:0" data-field="address"><legend class="label" style="font-weight:600;font-size:13.5px;padding:0;margin-bottom:6px">Địa điểm công ty</legend>
+      <div class="stack" id="addressBlock" style="gap:12px">
+        <div class="grid-2">
+          <div class="field"><label for="province" class="sr-only">Tỉnh/thành phố</label><select class="select" id="province" aria-label="Tỉnh/thành phố"><option value="">Chọn tỉnh/thành phố</option></select></div>
+          <div class="field"><label for="ward" class="sr-only">Phường/xã</label><select class="select" id="ward" aria-label="Phường/xã" disabled><option value="">Chọn tỉnh/thành trước</option></select></div>
+        </div>
+        <input class="input" id="address_detail" maxlength="150" placeholder="Số nhà, tên đường, tòa nhà" aria-label="Địa chỉ cụ thể">
+      </div>
+      <span class="hint" id="addressHint">Sinh viên dùng địa chỉ này để biết nơi làm việc.</span><div class="err" role="alert"></div></fieldset>
     <div class="field" data-field="description"><label for="description">Giới thiệu công ty</label>
       <textarea class="textarea" id="description" maxlength="5000" placeholder="Lĩnh vực hoạt động, quy mô, văn hóa làm việc, cơ hội cho sinh viên…"></textarea>
       <div class="counter"><span id="descCount">0</span>/5000</div><div class="err" role="alert"></div></div>
@@ -19,6 +38,7 @@
   </form>
   <aside class="aside-sticky">
     <section class="card card-pad" id="statusCard"><span class="skel" style="width:60%"></span></section>
+    <section class="card card-pad" id="infoCard"></section>
     <section class="card card-pad" id="checkCard"></section>
   </aside>
 </div>

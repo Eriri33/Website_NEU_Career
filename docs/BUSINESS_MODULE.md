@@ -7,12 +7,12 @@ Phạm vi: hồ sơ doanh nghiệp, quản lý tin tuyển dụng, tìm/lọc �
 ```powershell
 flask --app run.py init-db
 python scripts/import_administrative_units.py
-python scripts/seed_business_demo.py
+python scripts/seed_business_demo.py        # dữ liệu demo, chạy lại nhiều lần vẫn an toàn
 python run.py
 ```
 
 Mở `http://127.0.0.1:5000/business/login` — `business@demo.neu.vn` / `demo1234`.
-`business2@demo.neu.vn` dùng để thử quyền sở hữu; `admin@demo.neu.vn` / `admin123` để duyệt.
+`business2@demo.neu.vn` dùng để thử quyền sở hữu; `admin@demo.neu.vn` / `admin123` để duyệt (qua API cho tới khi TV3 làm UI duyệt).
 Chạy test: `python -m unittest tests.test_business tests.test_api -v`
 
 ## Trang giao diện (`/business/*`)
@@ -34,7 +34,7 @@ Mọi trang có trạng thái đang tải, rỗng, lỗi (có nút Thử lại).
 - Sửa: `app/__init__.py`, `app/database.py`, `app/companies/routes.py`, `db/schema.sql`
 - Mới (backend): `app/textutil.py`, `app/locations/`, `app/business_ui/`, `scripts/seed_business_demo.py`
 - Mới (frontend): `app/templates/business/*`, `app/static/css/{neu-tokens,business}.css`, `app/static/js/business/*`, `app/static/img/*`
-- Test: `tests/test_business.py` (24 ca)
+- Test: `tests/test_business.py` (26 ca)
 
 ## Thay đổi body `POST/PUT /api/company/jobs` (so với contract mục 7.2)
 
@@ -49,7 +49,7 @@ Thêm hai field tùy chọn (khớp contract mục 14):
 
 `salary_text` tối đa 100 ký tự, rỗng thì lưu "Thỏa thuận". `saturday_policy` nhận `off`, `working`, `negotiable`, `unknown` (mặc định `unknown`).
 
-## Đề xuất bổ sung contract cho `/api/company/*`
+## Đề xuất bổ sung contract cho `/api/company/*` (chờ nhóm duyệt rồi mới đưa vào `API_CONTRACT.md`)
 
 Các mục dưới đây đã có code + test trong `tests/test_business.py`.
 
@@ -70,18 +70,34 @@ Các mục dưới đây đã có code + test trong `tests/test_business.py`.
 
 **Quy ước `jobs.location`:** vẫn là một chuỗi. Giao diện doanh nghiệp ghép `"<địa chỉ cụ thể>, <phường/xã>, <tỉnh/thành>"` theo tên trong `wards`/`provinces`; lọc công khai theo tỉnh vẫn dùng `location LIKE`.
 
+## Hồ sơ công ty mở rộng
+
+Thêm 3 trường tùy chọn vào bảng `companies` (có migration, DB cũ vẫn dùng được):
+
+| Cột | Ý nghĩa | Ràng buộc |
+|---|---|---|
+| `company_size` | Quy mô nhân sự | rỗng hoặc `1-9`, `10-24`, `25-99`, `100-499`, `500-999`, `1000+` |
+| `industry` | Ngành nghề kinh doanh chính | tối đa 150 ký tự |
+| `address` | Địa điểm công ty, dạng `"<chi tiết>, <phường/xã>, <tỉnh/thành>"` | tối đa 255 ký tự |
+
+`GET /api/company/profile` trả thêm 3 trường này. `PUT /api/company/profile` nhận thêm chúng; **không gửi trường nào thì giữ nguyên giá trị đã lưu** (client cũ chỉ gửi 3 trường cũ vẫn chạy đúng). Gửi chuỗi rỗng để xóa. Lưu hồ sơ vẫn đưa trạng thái về `pending`.
+
+Giao diện `/business/profile` có thêm ô chọn quy mô, ngành nghề (gợi ý + nhập tự do), địa chỉ chọn tỉnh, phường/xã từ bảng dùng chung, thẻ "Thông tin chung" và nút "Mở trong Google Maps" (liên kết tìm kiếm theo địa chỉ, không cần API key).
+
+Chưa làm: nhiều ngành nghề phụ ("+53 lĩnh vực khác" như TopCV), bản đồ nhúng, trang công ty công khai và liên kết chia sẻ. Trang công khai thuộc phần TV1; khi cần hiển thị 3 trường này ở trang tin, TV1 chỉ cần thêm vào câu SELECT công ty.
+
 ## Thay đổi chạm vào phần của TV3/TV1
 
-1. `db/schema.sql` + `migrate_db()` trong `app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14). Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
+1. `db/schema.sql` + `migrate_db()` trong `app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14) và `companies.company_size`, `companies.industry`, `companies.address`. Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
 2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`app/textutil.py`).
 3. Blueprint mới `/api/locations/*` đọc bảng `provinces`/`wards` chung (không đổi cấu trúc bảng).
 4. TV1 cần thêm `salary_text`, `saturday_policy` vào SELECT của `/api/jobs` để hiển thị/lọc; TV3 thêm vào danh sách admin.
 5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `app/business_ui/routes.py`.
 
-## Chưa làm / giới hạn
+## Chưa làm / giới hạn 
 
-- **Doanh nghiệp chưa xem được CV của ứng viên.** Contract hiện chỉ cho sinh viên tải CV của mình và bảng `applications` không gắn CV. Muốn có cần thêm `applications.cv_id` và endpoint tải cho business.
-- Hồ sơ công ty chỉ có tên, mô tả, website (đúng contract); chưa có logo, quy mô, địa chỉ.
+- **Doanh nghiệp chưa xem được CV của ứng viên.** Contract hiện chỉ cho sinh viên tải CV của mình và bảng `applications` không gắn CV. Muốn có cần thêm `applications.cv_id` và endpoint tải cho business — cần nhóm thống nhất contract.
+- Hồ sơ công ty chưa có logo và chưa có nhiều ngành nghề phụ.
 - Hàng chờ duyệt và UI admin thuộc TV3; hiện duyệt doanh nghiệp/tin phải gọi API (Postman) hoặc dùng seed.
 - Lưu hồ sơ công ty luôn đưa trạng thái về `pending` theo contract, kể cả khi nội dung không đổi (UI chặn lưu khi không có thay đổi và cảnh báo trước khi gửi duyệt lại).
 - Phân trang chưa có (list trả mảng JSON theo contract).
