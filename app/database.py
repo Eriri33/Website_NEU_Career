@@ -26,6 +26,9 @@ MIGRATION_COLUMNS = [
     ("jobs", "saturday_policy",
      "TEXT NOT NULL DEFAULT 'unknown' CHECK (saturday_policy IN ('off','working','negotiable','unknown'))"),
     ("jobs", "salary_text", "TEXT NOT NULL DEFAULT 'Thỏa thuận'"),
+    ("companies", "company_size", "TEXT NOT NULL DEFAULT ''"),
+    ("companies", "industry", "TEXT NOT NULL DEFAULT ''"),
+    ("companies", "address", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 

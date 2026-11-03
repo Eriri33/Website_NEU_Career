@@ -331,3 +331,10 @@ body.auth { margin: 0; min-height: 100vh; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Thông tin chung của công ty ---------- */
+.info-list { display: grid; gap: 14px; }
+.info-row { display: flex; gap: 12px; align-items: flex-start; }
+.info-row .ic { width: 38px; height: 38px; padding: 9px; border-radius: 50%; background: var(--neu-blue-50); color: var(--neu-blue); flex: none; }
+.info-row .k { font-size: 12.5px; color: var(--ink-3); }
+.info-row .v { font-weight: 600; word-break: break-word; }

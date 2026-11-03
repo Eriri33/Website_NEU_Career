@@ -11,6 +11,7 @@ from app.textutil import like_pattern
 companies_bp = Blueprint("companies", __name__)
 
 VALID_JOB_TYPES = {"internship", "full_time", "part_time", "contract"}
+VALID_COMPANY_SIZES = {"", "1-9", "10-24", "25-99", "100-499", "500-999", "1000+"}
 VALID_SATURDAY_POLICIES = {"off", "working", "negotiable", "unknown"}
 JOB_STATUSES = {"pending", "approved", "rejected", "closed"}
 APPLICATION_STATUSES = ("submitted", "reviewing", "accepted", "rejected", "withdrawn")
@@ -20,6 +21,7 @@ MAX_LEN = {
     "title": 150, "description": 10000, "location": 255, "major_required": 255,
     "skills_required": 500, "salary_text": 100,
     "company_name": 150, "company_description": 5000, "website": 255,
+    "industry": 150, "address": 255,
 }
 
 LIKE = "ESCAPE '\\'"
@@ -31,6 +33,7 @@ def _error(code, message, status):
 
 
 def _today():
+    # Cùng mốc UTC với date('now') của SQLite trong các truy vấn công khai.
     return datetime.now(timezone.utc).date()
 
 
@@ -178,7 +181,9 @@ def company_profile():
     description, website = data.get("description"), data.get("website")
     for label, value, limit in (("Tên doanh nghiệp", name, MAX_LEN["company_name"]),
                                 ("Mô tả", description, MAX_LEN["company_description"]),
-                                ("Website", website, MAX_LEN["website"])):
+                                ("Website", website, MAX_LEN["website"]),
+                                ("Ngành nghề", data.get("industry"), MAX_LEN["industry"]),
+                                ("Địa chỉ", data.get("address"), MAX_LEN["address"])):
         if value is not None and not isinstance(value, str):
             return _error("invalid_input", f"{label} phải là chuỗi văn bản.", 400)
         if value and len(value.strip()) > limit:
@@ -187,11 +192,19 @@ def company_profile():
     site_error = _validate_website(website)
     if site_error:
         return _error("invalid_input", site_error, 400)
+    # Trường mới là tùy chọn: client cũ chỉ gửi 3 trường cũ thì giá trị đã lưu được giữ nguyên.
+    size = data["company_size"] if "company_size" in data else company["company_size"]
+    if not isinstance(size, str) or size not in VALID_COMPANY_SIZES:
+        return _error("invalid_input", "company_size phải là 1-9, 10-24, 25-99, 100-499, 500-999 hoặc 1000+.", 400)
+    industry = (data["industry"] if "industry" in data else company["industry"]) or ""
+    address = (data["address"] if "address" in data else company["address"]) or ""
     db.execute("""
         UPDATE companies SET company_name = ?, description = ?, website = ?,
+            company_size = ?, industry = ?, address = ?,
             approval_status = 'pending', review_note = '', reviewed_by = NULL, reviewed_at = NULL
         WHERE user_id = ?
-    """, (name.strip(), (description or "").strip(), website, session["user_id"]))
+    """, (name.strip(), (description or "").strip(), website,
+          size, industry.strip(), address.strip(), session["user_id"]))
     db.commit()
     return jsonify({"message": "Đã cập nhật hồ sơ; doanh nghiệp cần được duyệt lại."})
 
