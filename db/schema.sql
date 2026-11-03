@@ -159,8 +159,7 @@ CREATE TABLE IF NOT EXISTS wards (
     FOREIGN KEY (province_code)
         REFERENCES provinces(code)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    UNIQUE (province_code, name)
+        ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_wards_province_code
 ON wards(province_code);

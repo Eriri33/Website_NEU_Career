@@ -36,32 +36,35 @@
     <h1>Tìm công việc phù hợp<br><em>với tương lai của bạn.</em></h1>
     <p class="hero-copy">Khám phá cơ hội thực tập và việc làm chất lượng từ các doanh nghiệp uy tín, dành riêng cho sinh viên NEU.</p>
 
-    <form class="searchbar" id="searchForm" autocomplete="off">
-      <select id="heroCategory">
-        <option value="">Tất cả ngành nghề</option>
-      </select>
-      <div class="search-input-wrap">
-        <span class="search-icon">🔍</span>
-        <input id="query" placeholder="Vị trí tuyển dụng, kỹ năng..." autocomplete="off">
-      </div>
-      <div class="search-input-wrap">
-        <span class="search-icon">📍</span>
-        <input id="location" placeholder="Tỉnh/thành phố" list="locationOptions" autocomplete="off">
-        <datalist id="locationOptions"></datalist>
-      </div>
-      <button class="clear-search" type="button" id="clearSearch" title="Xóa ô tìm kiếm">×</button>
-      <button class="btn btn-primary search-btn" type="submit">Tìm kiếm <span>⌕</span></button>
-    </form>
+    <!-- .search-box là mốc định vị (position: relative) cho bảng gợi ý -->
+    <div class="search-box" id="searchBox">
+      <form class="searchbar" id="searchForm" autocomplete="off">
+        <select id="heroCategory" aria-label="Ngành nghề">
+          <option value="">Tất cả ngành nghề</option>
+        </select>
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input id="query" placeholder="Vị trí tuyển dụng, kỹ năng..." autocomplete="off" aria-label="Vị trí tuyển dụng, kỹ năng">
+        </div>
+        <div class="search-input-wrap search-input-location">
+          <span class="search-icon">📍</span>
+          <input id="location" placeholder="Tỉnh/thành phố" list="locationOptions" autocomplete="off" aria-label="Tỉnh/thành phố">
+          <datalist id="locationOptions"></datalist>
+        </div>
+        <button class="clear-search" type="button" id="clearSearch" title="Xóa ô tìm kiếm" aria-label="Xóa ô tìm kiếm">×</button>
+        <button class="btn btn-primary search-btn" type="submit">Tìm kiếm <span>⌕</span></button>
+      </form>
 
-    <!-- Suggestion dropdown -->
-    <div class="suggestions" id="suggestions" hidden>
-      <div>
-        <h4>🔥 Từ khóa phổ biến</h4>
-        <div id="keywordSuggestions" class="keyword-list"></div>
-      </div>
-      <div>
-        <h4>💼 Việc làm có thể bạn quan tâm</h4>
-        <div id="jobSuggestions" class="mini-jobs"></div>
+      <!-- Suggestion dropdown -->
+      <div class="suggestions" id="suggestions" hidden>
+        <div>
+          <h4>🔥 Từ khóa phổ biến</h4>
+          <div id="keywordSuggestions" class="keyword-list"></div>
+        </div>
+        <div>
+          <h4>💼 Việc làm có thể bạn quan tâm</h4>
+          <div id="jobSuggestions" class="mini-jobs"></div>
+        </div>
       </div>
     </div>
   </div>

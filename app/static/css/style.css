@@ -21,6 +21,10 @@
 
 /* ===== RESET ===== */
 *, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
 body { margin: 0; color: var(--ink); font: 15px/1.6 'DM Sans', Arial, sans-serif; background: #fff; -webkit-font-smoothing: antialiased; }
 a { text-decoration: none; color: inherit; }
 [hidden] { display: none !important; }
@@ -67,14 +71,14 @@ nav a:hover { color: var(--blue); border-bottom-color: var(--blue); }
   background: linear-gradient(135deg, #f0f5ff 0%, #e8f0fe 50%, #f0f5ff 100%);
   min-height: 480px;
   position: relative;
-  overflow: hidden;
+  /* KHÔNG dùng overflow:hidden ở đây: nó cắt mất bảng gợi ý tìm kiếm (.suggestions). */
 }
 .hero-bg {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
   background: linear-gradient(105deg, rgba(240,245,255,0.95) 0%, rgba(240,245,255,0.75) 45%, rgba(240,245,255,0.2) 70%),
               url('/static/assets/background1.webp') right center/cover no-repeat;
 }
-.hero-content { position: relative; padding: 64px 0 30px; }
+.hero-content { position: relative; z-index: 20; padding-top: 64px; padding-bottom: 30px; } /* giữ padding ngang 24px của .wrap */
 .hero-badge { margin-bottom: 16px; }
 .hero-logo { width: 64px; height: 64px; border-radius: 14px; object-fit: contain; }
 .eyebrow { font-size: 11px; letter-spacing: 1.6px; font-weight: 700; color: #738198; margin: 0 0 12px; text-transform: uppercase; }
@@ -86,13 +90,13 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
 .hero-copy { color: var(--muted); font-size: 16px; margin-bottom: 28px; max-width: 520px; }
 
 /* ===== SEARCH BAR ===== */
+.search-box { position: relative; max-width: 880px; }
 .searchbar {
   background: #fff;
   border: 1px solid #dde4f0;
   border-radius: var(--radius);
   padding: 6px;
   display: flex;
-  max-width: 880px;
   box-shadow: var(--shadow-md);
   position: relative;
   z-index: 6;
@@ -103,7 +107,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
   background: transparent; cursor: pointer;
 }
 .search-input-wrap { position: relative; display: flex; align-items: center; flex: 1; border-right: 1px solid var(--line); }
-.search-input-wrap:last-of-type { flex: 0 0 180px; }
+.search-input-location { flex: 0 0 180px; }
 .search-icon { position: absolute; left: 12px; font-size: 14px; opacity: 0.5; pointer-events: none; }
 .search-input-wrap input { border: 0; outline: 0; padding: 12px 12px 12px 34px; font: inherit; color: var(--ink); width: 100%; background: transparent; }
 .clear-search { border: 0; background: none; font-size: 22px; color: #a7b1c1; cursor: pointer; padding: 0 10px; transition: var(--transition); }
@@ -111,7 +115,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
 .search-btn { border-radius: 8px; min-width: 120px; }
 
 /* ===== HERO STATS ===== */
-.hero-stats { position: relative; z-index: 2; padding: 24px 0 0; }
+.hero-stats { position: relative; z-index: 2; padding: 24px 0 24px; }
 .stat-row { display: flex; gap: 48px; }
 .stat-item { display: flex; flex-direction: column; }
 .stat-num { font: 700 28px 'Playfair Display', serif; color: var(--navy); }
@@ -119,11 +123,11 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
 
 /* ===== SUGGESTIONS DROPDOWN ===== */
 .suggestions {
-  position: absolute; top: calc(100% + 8px); left: 0;
-  width: min(880px, 100%);
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 22px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;
-  box-shadow: var(--shadow-lg); z-index: 5;
+  box-shadow: var(--shadow-lg); z-index: 30;
+  max-height: min(420px, 70vh); overflow-y: auto;
 }
 .suggestions h4 { font-size: 13px; margin: 0 0 12px; color: var(--muted); }
 .keyword-list { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -137,6 +141,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
 .mini-job { padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: var(--transition); border: 1px solid transparent; }
 .mini-job:hover { background: var(--soft); border-color: var(--line); }
 .mini-job b { display: block; font-size: 14px; }
+.mini-job .salary { font-size: 12px; margin-top: 2px; display: block; }
 .mini-job small { color: var(--muted); font-size: 12px; }
 .company { display: block; color: var(--muted); font-size: 13px; }
 .muted { color: var(--muted); }
@@ -369,7 +374,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
   .searchbar { flex-wrap: wrap; }
   .searchbar select { width: 100%; border-right: 0; border-bottom: 1px solid var(--line); }
   .search-input-wrap { flex: 1 1 100%; border-right: 0; border-bottom: 1px solid var(--line); }
-  .search-input-wrap:last-of-type { flex: 1 1 100%; }
+  .search-input-location { flex: 1 1 100%; }
   .search-btn { width: 100%; }
   .suggestions { grid-template-columns: 1fr; }
   .stat-row { gap: 24px; }

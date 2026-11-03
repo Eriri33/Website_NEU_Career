@@ -16,7 +16,7 @@ const toast = m => {
   setTimeout(() => el.style.display = 'none', 3200);
 };
 
-const esc = s => (s || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+const esc = s => String(s ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 
 const JOB_TYPE_LABELS = {
   internship: 'Thực tập', full_time: 'Toàn thời gian',
@@ -33,6 +33,7 @@ const CATEGORY_ICONS = ['💼', '📊', '💻', '🎨', '📈', '🔬', '📱', 
 let categories = [];
 let currentJobs = [];
 let currentUser = null;
+let jobsRequestId = 0;
 
 /* ===== QUERY PARAMS BUILDER ===== */
 function params() {
@@ -105,15 +106,17 @@ function renderJobs() {
 /* ===== LOAD JOBS ===== */
 async function loadJobs() {
   const state = $('#resultState');
+  const requestId = ++jobsRequestId;
   state.innerHTML = '<div class="loading">Đang tìm cơ hội phù hợp…</div>';
   try {
-    currentJobs = await api('/api/jobs?' + params());
+    const jobs = await api('/api/jobs?' + params());
+    if (requestId !== jobsRequestId) return; // đã có lần tìm mới hơn
+    currentJobs = jobs;
     state.innerHTML = '';
     $('#resultTitle').textContent = currentJobs.length ? `${currentJobs.length} việc làm phù hợp` : 'Không có kết quả';
     renderJobs();
-    // Update stat
-    $('#statJobs').textContent = currentJobs.length;
   } catch (e) {
+    if (requestId !== jobsRequestId) return;
     state.innerHTML = `<div class="error">${esc(e.message)} <button class="text-button" onclick="loadJobs()">Thử lại</button></div>`;
     $('#jobResults').innerHTML = '';
   }
@@ -174,8 +177,10 @@ async function loadSuggestions() {
   try {
     const d = await api('/api/jobs/suggestions');
     $('#keywordSuggestions').innerHTML = (d.keywords || []).map(k =>
-      `<button type="button" class="keyword" onclick="useKeyword('${esc(k)}')">${esc(k)}</button>`
+      `<button type="button" class="keyword" data-keyword="${esc(k)}">${esc(k)}</button>`
     ).join('') || '<span class="muted">Chưa có gợi ý</span>';
+
+    renderStats(d.stats);
 
     // If student is logged in, try to load recommendations instead
     let jobs = d.jobs || [];
@@ -191,12 +196,19 @@ async function loadSuggestions() {
           `<div class="mini-job" onclick="openJob(${j.id})">
             <b>${esc(j.title)}</b>
             <small>${esc(j.company_name)} · ${esc(j.location) || 'Chưa rõ'}</small>
+            ${j.salary_text ? `<span class="salary">${esc(j.salary_text)}</span>` : ''}
           </div>`
         ).join('')
       : '<span class="muted">Chưa có tin mới</span>';
   } catch (_) {
     $('#keywordSuggestions').innerHTML = '<span class="muted">Không tải được gợi ý</span>';
   }
+}
+
+function renderStats(stats) {
+  if (!stats) return;
+  $('#statJobs').textContent = stats.total_jobs;
+  $('#statCompanies').textContent = stats.total_companies;
 }
 
 function useKeyword(k) {
@@ -296,7 +308,6 @@ async function checkSession() {
       $('#student').hidden = false;
       loadStudent();
     }
-    $('#statCompanies').textContent = '—';
   } catch (_) {
     currentUser = null;
     $('#authButton').textContent = 'Đăng nhập';
@@ -415,33 +426,41 @@ async function deleteCv(id) {
 }
 
 /* ===== FILTER SAVE/LOAD ===== */
+const SAVED_FILTERS_KEY = 'careerConnect.savedJobFilters';
+
+/* Luôn trả về mảng [{name, filters}]; chấp nhận định dạng cũ (object phẳng) và dữ liệu hỏng. */
+function readSavedFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVED_FILTERS_KEY) || '[]');
+    if (Array.isArray(saved)) return saved.filter(x => x && typeof x === 'object');
+    if (saved && typeof saved === 'object') return [{ name: 'Bộ lọc cũ', filters: saved }];
+  } catch (_) { /* dữ liệu hỏng -> coi như chưa có */ }
+  return [];
+}
+
+function writeSavedFilters(list) {
+  try {
+    localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(list));
+    return true;
+  } catch (_) {
+    toast('Không lưu được bộ lọc trên trình duyệt này.');
+    return false;
+  }
+}
+
 function saveFilters() {
   const filterData = Object.fromEntries(params());
-  const name = prompt('Đặt tên cho bộ lọc (hoặc bỏ trống):', '') || 'Bộ lọc ' + new Date().toLocaleDateString('vi');
-  const saved = JSON.parse(localStorage.getItem('careerConnect.savedJobFilters') || '[]');
-  if (!Array.isArray(saved)) {
-    // Migrate old format
-    localStorage.setItem('careerConnect.savedJobFilters', JSON.stringify([{ name: 'Bộ lọc cũ', filters: saved }]));
-  }
-  const list = Array.isArray(saved) ? saved : [{ name: 'Bộ lọc cũ', filters: saved }];
+  const name = (prompt('Đặt tên cho bộ lọc (hoặc bỏ trống):', '') || '').trim()
+    || 'Bộ lọc ' + new Date().toLocaleDateString('vi');
+  const list = readSavedFilters();
   list.push({ name, filters: filterData });
-  localStorage.setItem('careerConnect.savedJobFilters', JSON.stringify(list));
-  toast('💾 Đã lưu bộ lọc "' + name + '"');
+  if (writeSavedFilters(list)) toast('💾 Đã lưu bộ lọc "' + name + '"');
 }
 
 function loadSavedFilters() {
-  const raw = localStorage.getItem('careerConnect.savedJobFilters');
-  if (!raw) { toast('Chưa có bộ lọc nào được lưu.'); return; }
-  let saved = JSON.parse(raw);
-  // Handle old format (plain object)
-  if (!Array.isArray(saved)) {
-    applyFilterObject(saved);
-    toast('Đã tải bộ lọc đã lưu.');
-    return;
-  }
+  const saved = readSavedFilters();
   if (!saved.length) { toast('Chưa có bộ lọc nào được lưu.'); return; }
 
-  // Show picker in modal
   $('#modalContent').innerHTML = `
     <h2>📂 Bộ lọc đã lưu</h2>
     <hr>
@@ -461,31 +480,43 @@ function loadSavedFilters() {
 }
 
 function applySavedFilter(index) {
-  const saved = JSON.parse(localStorage.getItem('careerConnect.savedJobFilters') || '[]');
-  if (saved[index]) {
-    applyFilterObject(saved[index].filters || saved[index]);
-    toast('Đã áp dụng bộ lọc.');
-    $('#modal').hidden = true;
-  }
+  const item = readSavedFilters()[index];
+  if (!item) return;
+  applyFilterObject(item.filters || {});
+  toast('Đã áp dụng bộ lọc.');
+  $('#modal').hidden = true;
 }
 
 function deleteSavedFilter(index) {
-  const saved = JSON.parse(localStorage.getItem('careerConnect.savedJobFilters') || '[]');
-  saved.splice(index, 1);
-  localStorage.setItem('careerConnect.savedJobFilters', JSON.stringify(saved));
-  loadSavedFilters(); // re-render
+  const list = readSavedFilters();
+  list.splice(index, 1);
+  writeSavedFilters(list);
+  if (list.length) loadSavedFilters(); // vẽ lại danh sách
+  else { $('#modal').hidden = true; toast('Đã xóa bộ lọc.'); }
+}
+
+/* Đặt lại toàn bộ filter về mặc định (dùng chung cho nút Xóa lọc và khi áp dụng bộ lọc đã lưu). */
+function resetFilterControls() {
+  ['query', 'location', 'major', 'skills'].forEach(id => $('#' + id).value = '');
+  ['jobType', 'saturday', 'posted', 'heroCategory'].forEach(id => $('#' + id).value = '');
+  $('#sort').value = 'latest';
+  $$('#categoryFilters input').forEach(x => x.checked = false);
 }
 
 function applyFilterObject(s) {
+  resetFilterControls(); // không cộng dồn với filter đang chọn
+  const ids = { q: 'query', job_type: 'jobType', saturday_policy: 'saturday', posted_within: 'posted' };
   Object.entries(s).forEach(([k, v]) => {
-    const id = { q: 'query', job_type: 'jobType', saturday_policy: 'saturday', posted_within: 'posted' }[k] || k;
     if (k === 'category_ids') {
-      String(v).split(',').forEach(x => {
-        const b = $(`#categoryFilters input[value="${x}"]`);
+      const chosen = String(v).split(',').filter(Boolean);
+      chosen.forEach(x => {
+        const b = $(`#categoryFilters input[value="${CSS.escape(x)}"]`);
         if (b) b.checked = true;
       });
-    } else if ($('#' + id)) {
-      $('#' + id).value = v;
+      $('#heroCategory').value = chosen.length === 1 ? chosen[0] : '';
+    } else {
+      const el = $('#' + (ids[k] || k));
+      if (el && 'value' in el) el.value = v;
     }
   });
   loadJobs();
@@ -515,7 +546,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  $('#categoryFilters').addEventListener('change', loadJobs);
+  $('#categoryFilters').addEventListener('change', () => {
+    const checked = $$('#categoryFilters input:checked');
+    $('#heroCategory').value = checked.length === 1 ? checked[0].value : '';
+    loadJobs();
+  });
 
   // Hero category -> sidebar sync
   $('#heroCategory').onchange = e => {
@@ -529,14 +564,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#clearSearch').onclick = () => {
     $('#query').value = '';
     $('#location').value = '';
+    $('#query').focus();
   };
 
   // Reset all filters
   $('#resetFilters').onclick = () => {
-    ['query', 'location', 'major', 'skills'].forEach(id => $('#' + id).value = '');
-    ['jobType', 'saturday', 'posted', 'heroCategory'].forEach(id => $('#' + id).value = '');
-    $('#sort').value = 'latest';
-    $$('#categoryFilters input').forEach(x => x.checked = false);
+    resetFilterControls();
     loadJobs();
   };
 
@@ -554,6 +587,18 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#location').addEventListener('focus', () => {
     $('#suggestions').hidden = true;
     suggestionsVisible = false;
+  });
+
+  $('#query').addEventListener('input', () => {
+    if ($('#suggestions').hidden) {
+      $('#suggestions').hidden = false;
+      suggestionsVisible = true;
+      loadSuggestions();
+    }
+  });
+  $('#keywordSuggestions').addEventListener('click', e => {
+    const btn = e.target.closest('[data-keyword]');
+    if (btn) useKeyword(btn.dataset.keyword);
   });
 
   document.addEventListener('click', e => {

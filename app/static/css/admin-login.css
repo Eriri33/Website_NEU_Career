@@ -1,6 +1,8 @@
 *{box-sizing:border-box}
 :root{--font-primary:'Inter',sans-serif;--font-support:'Mulish',sans-serif}
 html,body{margin:0;min-height:100%;font-family:var(--font-primary);font-synthesis:none}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .login-page{min-height:100vh;background:#111}
 .login-screen{position:relative;min-height:100vh;overflow:hidden;isolation:isolate;background:#17191d}
 .login-slides{position:absolute;inset:0;z-index:-2;background:#202329}

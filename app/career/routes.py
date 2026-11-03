@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.database import get_db
 from app.auth.guards import roles_required
+from app.textutil import like_pattern
 
 career_bp = Blueprint("career", __name__)
 
@@ -15,8 +16,9 @@ def list_published_content():
     """
     params = []
     if keyword:
-        sql += " AND (title LIKE ? OR summary LIKE ? OR body LIKE ?)"
-        params.extend([f"%{keyword}%"] * 3)
+        sql += (" AND (fold(title) LIKE ? ESCAPE '\\' OR fold(summary) LIKE ? ESCAPE '\\'"
+                " OR fold(body) LIKE ? ESCAPE '\\')")
+        params.extend([like_pattern(keyword)] * 3)
     if category:
         sql += " AND category = ?"
         params.append(category)
