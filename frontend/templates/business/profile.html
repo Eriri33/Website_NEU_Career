@@ -1,0 +1,39 @@
+{% extends "business/base.html" %}
+{% block title %}Hồ sơ công ty{% endblock %}
+{% block heading %}Hồ sơ công ty{% endblock %}
+{% block subheading %}<span class="sub">Thông tin sinh viên và nhà trường nhìn thấy về công ty</span>{% endblock %}
+{% block actions %}{% endblock %}
+{% block content %}
+<div id="welcomeNotice"></div>
+<div id="profileError" hidden></div>
+<div class="form-layout" id="profileLayout">
+  <form class="card card-pad stack" id="profileForm" novalidate>
+    <div class="field" data-field="company_name"><label for="company_name">Tên công ty<span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="company_name" maxlength="150" required><div class="err" role="alert"></div></div>
+    <div class="field" data-field="website"><label for="website">Website</label>
+      <input class="input" id="website" inputmode="url" maxlength="255" placeholder="https://congty.vn"><span class="hint">Bắt đầu bằng http:// hoặc https://. Nếu bạn nhập thiếu, hệ thống tự thêm https://.</span><div class="err" role="alert"></div></div>
+    <div class="grid-2">
+      <div class="field" data-field="company_size"><label for="company_size">Quy mô công ty</label>
+        <select class="select" id="company_size"><option value="">Chọn quy mô</option><option value="1-9">1-9 nhân viên</option><option value="10-24">10-24 nhân viên</option><option value="25-99">25-99 nhân viên</option><option value="100-499">100-499 nhân viên</option><option value="500-999">500-999 nhân viên</option><option value="1000+">Trên 1.000 nhân viên</option></select><div class="err" role="alert"></div></div>
+      <div class="field" data-field="primary_industry"><label for="primary_industry">Ngành nghề chính</label>
+        <input class="input" id="primary_industry" maxlength="255" placeholder="VD: Công nghệ thông tin"><div class="err" role="alert"></div></div>
+    </div>
+    <div class="field" data-field="business_industries"><label for="business_industries">Lĩnh vực kinh doanh</label>
+      <input class="input" id="business_industries" maxlength="1000" placeholder="VD: Phần mềm, chuyển đổi số, tư vấn công nghệ"><span class="hint">Ngăn cách các lĩnh vực bằng dấu phẩy.</span><div class="err" role="alert"></div></div>
+    <div class="field" data-field="address"><label for="address">Địa điểm công ty</label>
+      <textarea class="textarea textarea-sm" id="address" maxlength="500" placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố"></textarea><span class="hint">Địa chỉ này được dùng để hiển thị bản đồ trên hồ sơ công khai.</span><div class="err" role="alert"></div></div>
+    <div class="field" data-field="description"><label for="description">Giới thiệu công ty</label>
+      <textarea class="textarea" id="description" maxlength="5000" placeholder="Lĩnh vực hoạt động, quy mô, văn hóa làm việc, cơ hội cho sinh viên…"></textarea>
+      <div class="counter"><span id="descCount">0</span>/5000</div><div class="err" role="alert"></div></div>
+    <div><button class="btn btn-primary" type="submit" id="btnSave">Lưu hồ sơ</button></div>
+  </form>
+  <aside class="aside-sticky">
+    <section class="card card-pad" id="statusCard"><span class="skel" style="width:60%"></span></section>
+    <section class="card card-pad" id="checkCard"></section>
+    <section class="card card-pad" id="companyInfoCard"></section>
+    <section class="card card-pad" id="mapCard"></section>
+    <section class="card card-pad" id="shareCard"></section>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/profile.js') }}"></script>{% endblock %}

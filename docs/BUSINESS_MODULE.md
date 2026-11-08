@@ -4,11 +4,14 @@ Phạm vi: hồ sơ doanh nghiệp, quản lý tin tuyển dụng, tìm/lọc �
 
 ## Chạy thử
 
-```powershell
-flask --app run.py init-db
-python scripts/import_administrative_units.py
-python scripts/seed_business_demo.py
-python run.py
+Khởi động ứng dụng bằng `run.cmd` tại thư mục gốc. Script tự chuẩn bị môi trường
+Python, khởi tạo database và chạy web server.
+
+Để nạp dữ liệu địa giới và tài khoản demo (tùy chọn), mở CMD khác tại thư mục gốc:
+
+```cmd
+.venv\Scripts\python.exe scripts\import_administrative_units.py
+.venv\Scripts\python.exe scripts\seed_business_demo.py
 ```
 
 Mở `http://127.0.0.1:5000/business/login` — `business@demo.neu.vn` / `demo1234`.
@@ -31,9 +34,9 @@ Mọi trang có trạng thái đang tải, rỗng, lỗi (có nút Thử lại).
 
 ## File thêm/sửa
 
-- Sửa: `app/__init__.py`, `app/database.py`, `app/companies/routes.py`, `db/schema.sql`
-- Mới (backend): `app/textutil.py`, `app/locations/`, `app/business_ui/`, `scripts/seed_business_demo.py`
-- Mới (frontend): `app/templates/business/*`, `app/static/css/{neu-tokens,business}.css`, `app/static/js/business/*`, `app/static/img/*`
+- Sửa (backend): `backend/app/__init__.py`, `backend/app/database.py`, `backend/app/companies/routes.py`, `db/schema.sql`
+- Mới (backend): `backend/app/textutil.py`, `backend/app/locations/`, `backend/app/business_ui/`, `scripts/seed_business_demo.py`
+- Mới (frontend): `frontend/templates/business/*`, `frontend/static/css/{neu-tokens,business}.css`, `frontend/static/js/business/*`, `frontend/static/img/*`
 - Test: `tests/test_business.py` (24 ca)
 
 ## Thay đổi body `POST/PUT /api/company/jobs` (so với contract mục 7.2)
@@ -72,11 +75,11 @@ Các mục dưới đây đã có code + test trong `tests/test_business.py`.
 
 ## Thay đổi chạm vào phần của TV3/TV1
 
-1. `db/schema.sql` + `migrate_db()` trong `app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14). Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
-2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`app/textutil.py`).
+1. `db/schema.sql` + `migrate_db()` trong `backend/app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14). Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
+2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`backend/app/textutil.py`).
 3. Blueprint mới `/api/locations/*` đọc bảng `provinces`/`wards` chung (không đổi cấu trúc bảng).
 4. TV1 cần thêm `salary_text`, `saturday_policy` vào SELECT của `/api/jobs` để hiển thị/lọc; TV3 thêm vào danh sách admin.
-5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `app/business_ui/routes.py`.
+5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `backend/app/business_ui/routes.py`.
 
 ## Chưa làm / giới hạn
 

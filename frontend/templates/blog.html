@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog hướng nghiệp — NEU Career</title>
+<meta name="description" content="Cẩm nang CV, phỏng vấn, thực tập và kỹ năng nghề nghiệp dành cho sinh viên NEU.">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav aria-label="Điều hướng chính">
+      <a href="/">Trang chủ</a>
+      <a href="/jobs">Tìm việc</a>
+      <a href="/blog" aria-current="page">Hướng nghiệp</a>
+    </nav>
+    <div class="nav-actions">
+      <span id="sessionLabel"></span>
+      <a class="btn btn-outline" id="authButton" href="{{ url_for('login_page') }}">Đăng nhập</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="blog-hero">
+    <div class="wrap blog-hero-content">
+      <p class="eyebrow blue">NEU CAREER · GÓC HƯỚNG NGHIỆP</p>
+      <h1>Vững hành trang,<br><em>tự tin bước tiếp.</em></h1>
+      <p>Những chia sẻ thiết thực giúp bạn chuẩn bị CV, phỏng vấn và khám phá con đường nghề nghiệp phù hợp.</p>
+      <a class="btn btn-primary" href="#blogList">Khám phá bài viết <span aria-hidden="true">↓</span></a>
+    </div>
+  </section>
+
+  <section class="wrap blog-main" id="blogList">
+    <div class="section-heading">
+      <div><p class="eyebrow blue">CẨM NANG NGHỀ NGHIỆP</p><h2>Bài viết mới nhất</h2></div>
+      <label class="blog-search">
+        <span class="sr-only">Tìm bài viết</span>
+        <input id="blogSearch" type="search" placeholder="Tìm chủ đề, kỹ năng...">
+      </label>
+    </div>
+    <div class="blog-categories" id="blogCategories" aria-label="Lọc theo chủ đề"></div>
+    <div id="blogState" aria-live="polite"></div>
+    <div id="blogCards" class="blog-grid"></div>
+  </section>
+
+  <section class="home-cta">
+    <div class="wrap home-cta-content">
+      <div><p class="eyebrow">KIẾN THỨC ĐI CÙNG CƠ HỘI</p><h2>Đã sẵn sàng cho bước tiếp theo?</h2>
+      <p>Khám phá việc làm và tìm cơ hội thực tập phù hợp với mục tiêu của bạn.</p></div>
+      <a class="btn btn-primary" href="/jobs">Tìm việc ngay <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-content">
+    <div class="footer-brand">
+      <a class="brand" href="/">NEU<span>Career</span></a>
+      <p>Kết nối sinh viên Đại học Kinh tế Quốc dân với cơ hội nghề nghiệp chất lượng.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Khám phá</h4><a href="/">Trang chủ</a><a href="/jobs">Tìm việc</a><a href="/blog">Hướng nghiệp</a>
+    </div>
+    <div class="footer-links">
+      <h4>Hỗ trợ</h4><a href="/login">Đăng nhập</a><a href="/register">Tạo tài khoản</a>
+    </div>
+  </div>
+  <div class="footer-bottom"><div class="wrap">© 2026 NEU Career Connect. Đại học Kinh tế Quốc dân.</div></div>
+</footer>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="blogModalTitle">
+    <button class="modal-close" id="closeModal" aria-label="Đóng">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/public.js') }}"></script>
+<script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+</body>
+</html>

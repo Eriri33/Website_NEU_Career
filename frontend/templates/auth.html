@@ -1,0 +1,89 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if mode == 'login' %}Đăng nhập{% else %}Đăng ký{% endif %} · NEU Career</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+<main class="auth-layout">
+
+  <section class="auth-intro">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <div class="auth-intro-body">
+      <p class="eyebrow">CAREER CONNECT · ĐẠI HỌC KINH TẾ QUỐC DÂN</p>
+      <h1>{% if mode == 'login' %}Chào mừng bạn <em>trở lại</em>{% else %}Bắt đầu hành trình <em>nghề nghiệp</em>{% endif %}</h1>
+      <p class="auth-lead">Kết nối với cơ hội việc làm và thực tập dành riêng cho cộng đồng NEU.</p>
+      <ul class="auth-perks">
+        <li>Tin tuyển dụng từ doanh nghiệp đã được kiểm duyệt</li>
+        <li>Ứng tuyển nhanh và theo dõi trạng thái hồ sơ</li>
+        <li>Nội dung hướng nghiệp dành cho sinh viên NEU</li>
+      </ul>
+    </div>
+    <a href="/" class="text-link">← Quay về trang chủ</a>
+  </section>
+
+  <section class="auth-side">
+    <div class="auth-panel">
+      {% if mode == 'login' %}
+      <h2>Đăng nhập</h2>
+      <p class="auth-subtitle">Tiếp tục với tài khoản NEU Career của bạn.</p>
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" placeholder="email@example.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mật khẩu</label>
+          <div class="password-field">
+            <input id="password" type="password" name="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
+            <button type="button" class="toggle-password" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button>
+          </div>
+        </div>
+        <p class="form-message" id="formMessage" role="alert" aria-live="polite"></p>
+        <button type="submit" class="btn btn-primary full">Đăng nhập</button>
+      </form>
+      <p class="auth-switch">Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
+      <p class="auth-switch">Dành cho nhà tuyển dụng? <a href="/business/login">Đăng nhập hoặc đăng ký doanh nghiệp</a></p>
+      <p class="auth-switch">Quản trị viên? <a href="/admin/login">Đăng nhập cổng quản trị</a></p>
+      {% else %}
+      <h2>Tạo tài khoản</h2>
+      <p class="auth-subtitle">Đăng ký để khám phá và ứng tuyển cơ hội phù hợp.</p>
+      <form id="registerForm" class="auth-form" novalidate>
+        <fieldset class="role-picker">
+          <legend>Bạn là</legend>
+          <div class="role-options">
+            <label class="role-option">
+              <input type="radio" name="role" value="student" checked>
+              <span><b>Sinh viên</b><small>Tìm việc &amp; thực tập</small></span>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="business">
+              <span><b>Doanh nghiệp</b><small>Đăng tin tuyển dụng</small></span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" placeholder="email@example.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mật khẩu</label>
+          <div class="password-field">
+            <input id="password" type="password" name="password" placeholder="Ít nhất 6 ký tự" autocomplete="new-password" minlength="6" required>
+            <button type="button" class="toggle-password" aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button>
+          </div>
+        </div>
+        <p class="form-message" id="formMessage" role="alert" aria-live="polite"></p>
+        <button type="submit" class="btn btn-primary full">Đăng ký</button>
+      </form>
+      <p class="auth-switch">Đã có tài khoản? <a href="/login">Đăng nhập</a></p>
+      {% endif %}
+    </div>
+  </section>
+
+</main>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

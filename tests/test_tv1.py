@@ -197,7 +197,19 @@ class TV1TestCase(unittest.TestCase):
         titles = [a["title"] for a in self.client.get("/api/career-contents", query_string={"q": "phong van"}).get_json()]
         self.assertEqual(titles, ["Phỏng vấn online"])
 
+    def test_public_pages_are_separate(self):
+        home = self.client.get("/")
+        jobs = self.client.get("/jobs")
+        blog = self.client.get("/blog")
+
+        self.assertEqual(home.status_code, 200)
+        self.assertIn(b"M\xe1\xbb\x9f l\xe1\xbb\x91i t\xc6\xb0\xc6\xa1ng lai", home.data)
+        self.assertNotIn(b'id="searchForm"', home.data)
+        self.assertEqual(jobs.status_code, 200)
+        self.assertIn(b'id="searchForm"', jobs.data)
+        self.assertEqual(blog.status_code, 200)
+        self.assertIn(b'id="blogCards"', blog.data)
+
 
 if __name__ == "__main__":
     unittest.main()
-

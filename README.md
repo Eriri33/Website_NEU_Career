@@ -73,7 +73,45 @@ Chi tiết tương tác nằm trong [`docs/SEARCH_UI_SPEC.md`](docs/SEARCH_UI_SP
 | Career content | API public đọc nội dung đã xuất bản; staff CRUD | UI public và admin; search/filter title/category/status |
 | Search across roles | Một phần tìm kiếm public jobs đã có trong BE | Các API lọc phụ trợ và UI ở các khu vực còn thiếu; xem contract v2 |
 
-**Quan trọng:** `app/templates/index.html` hiện chỉ là trang giới thiệu/health check, không phải giao diện Career Connect hoàn chỉnh. Backend có một số filter không có nghĩa là frontend đã có chức năng lọc.
+**Quan trọng:** `frontend/templates/index.html` hiện chỉ là trang giới thiệu/health check, không phải giao diện Career Connect hoàn chỉnh. Backend có một số filter không có nghĩa là frontend đã có chức năng lọc.
+
+## Module M03, M12, M13
+
+Backend hiện nhóm các chức năng tại `backend/app/modules/m03_students/`,
+`backend/app/modules/m12_support/` và `backend/app/modules/m13_partners/`. Bản đồ chức năng theo
+từng file, API, phân quyền và các phần còn chờ đặc tả nằm tại
+[`docs/MODULES_M03_M12_M13.md`](docs/MODULES_M03_M12_M13.md).
+
+## Cổng doanh nghiệp và quản trị
+
+- **Doanh nghiệp:** chọn **Nhà tuyển dụng** ở thanh điều hướng hoặc mở
+  `/business/login`. Sau khi đăng nhập, tài khoản vào `/business/dashboard` để
+  quản lý hồ sơ công ty, đăng/sửa/đóng tin, xem ứng viên và cập nhật trạng thái
+  hồ sơ ứng tuyển. Tài khoản mới cần hoàn thiện hồ sơ và được duyệt trước khi
+  đăng tin.
+- **Admin/Moderator:** mở `/admin/login`. Cổng `/admin/` có dashboard, duyệt
+  doanh nghiệp và tin, quản lý nội dung hướng nghiệp/danh mục và lịch sử duyệt.
+  Admin có thêm trang quản lý tài khoản tại `/admin/users`.
+- Đăng nhập chung từ trang chủ cũng chuyển đúng vai trò: sinh viên đến khu vực
+  student, doanh nghiệp đến dashboard tuyển dụng, staff đến cổng quản trị.
+- Các trang và API tiếp tục kiểm tra role ở backend; đường dẫn giao diện không
+  thay thế kiểm tra quyền API.
+
+## Cấu trúc thư mục
+
+| Thư mục/file | Trách nhiệm |
+|---|---|
+| `backend/app/` | Flask API, route/Blueprint, xác thực, truy cập DB và nghiệp vụ |
+| `backend/app/modules/` | Các module M03, M12, M13 |
+| `backend/config.py` | Cấu hình server, đường dẫn frontend, SQLite và uploads |
+| `frontend/templates/` | Trang HTML/Jinja cho public, admin và business |
+| `frontend/static/` | CSS, JavaScript và ảnh dùng bởi giao diện |
+| `db/` | Schema SQLite và dữ liệu database local |
+| `scripts/`, `tests/` | Script vận hành/seed và kiểm thử backend |
+| `app.py`, `config.py`, `run.py` | Tương thích import/lệnh cũ; cấu hình chính ở `backend/` |
+
+Flask phục vụ giao diện từ `frontend/` và API từ `backend/app/`. Các URL hiện tại,
+bao gồm `/static/...`, được giữ nguyên.
 
 ## 5. Module và phân công cho 3 người
 
@@ -83,7 +121,7 @@ Chia theo **module nghiệp vụ**, mỗi người làm cả BE + FE trong phạ
 
 **Phạm vi:** trang công khai cho Guest và khu vực Student.
 
-- FE: thanh tìm việc theo mẫu, gợi ý từ khóa/tin, bộ lọc nâng cao, danh mục phổ biến, kết quả/chi tiết, hồ sơ student, CV, ứng tuyển, lịch sử đơn.
+- FE: thanh tìm việc theo mẫu, gợi ý từ khóa/tin, bộ lọc nâng cao, danh mục phổ biến, kết quả/chi tiết; trang hồ sơ student riêng tại `frontend/templates/student/profile.html`, với logic tại `frontend/static/js/student-profile.js` (hồ sơ, tiến độ hoàn thiện, CV, gợi ý việc làm và theo dõi/chỉnh/rút đơn ứng tuyển).
 - BE: `GET /api/jobs*`, `GET /api/jobs/categories`, `GET /api/jobs/suggestions`, `/api/students/*`, `/api/applications/*`, `GET /api/career-contents*`.
 - Search: q, category multi-select, location, job type, major/skills, Saturday policy, posting age; tìm/lọc đơn student.
 - Test: khách không đăng nhập vẫn xem/tìm; chỉ student đăng nhập mới ứng tuyển; không đọc được đơn/CV người khác.
@@ -129,18 +167,28 @@ Không được hy sinh luồng tuyển dụng P0 để làm hiệu ứng UI. Tu
 - Session dùng cookie Flask; frontend cần gửi cookie khi gọi API cùng nguồn. Nếu chia frontend server riêng, cấu hình CORS/credentials thống nhất thay vì tắt bảo mật tùy tiện.
 - Không gọi database trực tiếp từ frontend.
 
-## 8. Cài đặt/chạy local (Windows PowerShell)
+## 8. Cài đặt/chạy local (Windows CMD)
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-flask --app run.py init-db
-python run.py
+Chỉ cần mở hoặc chạy `run.cmd` tại thư mục dự án. File này tự tạo `.venv` nếu
+chưa có, cài dependencies khi Flask chưa được cài, khởi tạo/cập nhật schema
+database, rồi chạy server. Cần cài Python 3 trên Windows; script ưu tiên Python
+Launcher (`py -3`), sau đó thử lệnh `python`.
+
+Có thể chạy từ Command Prompt:
+
+```cmd
+run.cmd
 ```
 
+Các trang công khai được tách riêng: `/` là trang chủ, `/jobs` là trang tìm
+việc và `/blog` là cẩm nang hướng nghiệp. Để nạp ba bài viết mẫu vào database
+hiện tại, chạy `python scripts/seed_career_blog.py` một lần; có thể chạy lại an
+toàn mà không tạo bài trùng lặp.
+
 Mở `http://127.0.0.1:5000/`, API health `http://127.0.0.1:5000/api/health`.
+Nhấn `Ctrl+C` trong cửa sổ CMD để dừng server.
+Chạy `run.cmd --init-only` nếu chỉ muốn chuẩn bị môi trường và database mà không
+khởi động server.
 
 Nếu schema thay đổi sau khi đã có database, không xóa DB của nhóm một cách mù quáng. Cần migration idempotent (kiểm tra cột/bảng đã tồn tại trước khi `ALTER TABLE`) hoặc dùng database demo có thể tái tạo. Không đưa mật khẩu thật, `.env`, `.venv`, `__pycache__`, upload CV hoặc database có dữ liệu cá nhân lên GitHub.
 
