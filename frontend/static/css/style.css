@@ -133,7 +133,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
 
 /* ===== SUGGESTIONS DROPDOWN ===== */
 .suggestions {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  position: relative; top: auto; left: auto; right: auto; margin-top: 8px;
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 22px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;
   box-shadow: var(--shadow-lg); z-index: 30;
