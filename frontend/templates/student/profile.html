@@ -18,7 +18,7 @@
     </nav>
     <div class="nav-actions">
       <span id="sessionLabel"></span>
-      <a class="btn btn-outline" href="/student/profile" aria-current="page">Hồ sơ của tôi</a>
+      <button class="btn btn-outline" type="button" id="logoutButton">Đăng xuất</button>
     </div>
   </div>
 </header>
@@ -148,6 +148,7 @@
   </form>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/student-profile.js') }}"></script>
 </body>
 </html>
