@@ -10,5 +10,13 @@
         <th>TRẠNG THÁI</th>
         <th>THAO TÁC</th>
     </tr>
-</thead><tbody id="jobsTable"><tr><td colspan="6" class="empty-cell">Đang tải dữ liệu...</td></tr></tbody></table></div></section>
+</thead><tbody id="jobsTable"><tr><td colspan="7" class="empty-cell">Đang tải dữ liệu...</td></tr></tbody></table></div></section>
+<dialog id="jobTextModal" class="modal modal-wide">
+    <div class="modal-head">
+        <h2 id="jobTextTitle">Thông tin chi tiết</h2>
+        <button type="button" class="icon-btn" data-job-text-close
+                aria-label="Đóng" formnovalidate>×</button>
+    </div>
+    <div id="jobTextContent" class="job-text-content"></div>
+</dialog>
 {% endblock %}

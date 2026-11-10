@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Chi tiết tin tuyển dụng{% endblock %}
+{% block page_key %}job-detail{% endblock %}
+{% block breadcrumb %}Chi tiết tin tuyển dụng{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow">KIỂM DUYỆT TIN TUYỂN DỤNG</div>
+        <h1>{{ job.title }}</h1>
+        <p>Mã tin #{{ job.id }} · Gửi ngày {{ job.created_at }}</p>
+    </div>
+    <a class="btn btn-light" href="{{ url_for('admin_pages.jobs') }}">
+        ← Quay lại danh sách
+    </a>
+</div>
+
+<section class="panel detail-panel">
+    <div class="detail-section-heading">
+        <h2>Thông tin tuyển dụng</h2>
+        <span class="detail-status">{{ job.status }}</span>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span>Vị trí tuyển dụng</span>
+            <strong>{{ job.title }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Doanh nghiệp</span>
+            <a href="{{ url_for('admin_pages.company_detail', company_id=job.company_id) }}">
+                {{ job.company_name }}
+            </a>
+        </div>
+        <div class="detail-item">
+            <span>Danh mục nghề nghiệp</span>
+            <strong>{{ job.category_name or 'Chưa phân loại' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Loại công việc</span>
+            <strong>{{ job.job_type }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Địa điểm</span>
+            <strong>{{ job.location or 'Chưa cập nhật' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Mức lương</span>
+            <strong>{{ job.salary_text or 'Thỏa thuận' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Hạn ứng tuyển</span>
+            <strong>{{ job.deadline or 'Chưa cập nhật' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Chính sách làm việc thứ Bảy</span>
+            <strong>{{ job.saturday_policy or 'Chưa cập nhật' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Ngành học phù hợp</span>
+            <strong>{{ job.major_required or 'Không yêu cầu cụ thể' }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Kỹ năng yêu cầu</span>
+            <strong>{{ job.skills_required or 'Chưa cập nhật' }}</strong>
+        </div>
+    </div>
+
+    <div class="detail-long-section">
+        <h3>Mô tả công việc</h3>
+        <div class="detail-long-text">{{ job.description or 'Chưa có mô tả.' }}</div>
+    </div>
+
+    {% if job.review_note %}
+    <div class="detail-long-section">
+        <h3>Ghi chú kiểm duyệt</h3>
+        <div class="detail-long-text">{{ job.review_note }}</div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

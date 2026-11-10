@@ -55,11 +55,24 @@ def create_app(test_config=None):
 
     @app.get("/dashboard")
     def dashboard():
-        if not session.get("user_id"):
-            from flask import redirect, url_for
-            return redirect(url_for("login_page"))
-        return render_template("dashboard.html", role=session.get("role"))
+        from flask import redirect, url_for
 
+        role = session.get("role")
+
+        if not session.get("user_id"):
+            return redirect(url_for("login_page"))
+
+        if role == "student":
+            return redirect(url_for("index"))
+
+        if role == "business":
+            return redirect(url_for("business_ui.dashboard"))
+
+        if role in {"admin", "moderator"}:
+            return redirect(url_for("admin_pages.dashboard"))
+
+        session.clear()
+        return redirect(url_for("login_page"))
     @app.get("/api/health")
     def health():
         return jsonify({"status": "ok", "message": "Career Connect API is running"})
