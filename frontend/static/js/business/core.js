@@ -8,6 +8,7 @@
   BZ.JOB_TYPE = { internship: 'Thực tập', full_time: 'Toàn thời gian', part_time: 'Bán thời gian', contract: 'Hợp đồng' };
   BZ.SATURDAY = { off: 'Nghỉ thứ Bảy', working: 'Làm thứ Bảy', negotiable: 'Thỏa thuận thứ Bảy', unknown: 'Chưa nêu rõ' };
   BZ.COMPANY_STATUS = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Bị từ chối' };
+  BZ.COMPANY_SIZE = { '1-9': '1-9 nhân viên', '10-24': '10-24 nhân viên', '25-99': '25-99 nhân viên', '100-499': '100-499 nhân viên', '500-999': '500-999 nhân viên', '1000+': 'Từ 1000 nhân viên' };
   BZ.DEFAULT_COMPANY_NAME = 'Chưa cập nhật';
 
   // chuỗi

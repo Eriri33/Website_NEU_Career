@@ -11,6 +11,7 @@ from app.textutil import like_pattern
 companies_bp = Blueprint("companies", __name__)
 
 VALID_JOB_TYPES = {"internship", "full_time", "part_time", "contract"}
+VALID_COMPANY_SIZES = {"", "1-9", "10-24", "25-99", "100-499", "500-999", "1000+"}
 VALID_SATURDAY_POLICIES = {"off", "working", "negotiable", "unknown"}
 JOB_STATUSES = {"pending", "approved", "rejected", "closed"}
 APPLICATION_STATUSES = ("submitted", "reviewing", "accepted", "rejected", "withdrawn")
@@ -20,7 +21,7 @@ MAX_LEN = {
     "title": 150, "description": 10000, "location": 255, "major_required": 255,
     "skills_required": 500, "salary_text": 100,
     "company_name": 150, "company_description": 5000, "website": 255,
-    "business_industries": 1000, "primary_industry": 255, "address": 500,
+    "business_industries": 1000, "primary_industry": 255, "industry": 150, "address": 255,
 }
 COMPANY_SIZES = {"", "1-9", "10-24", "25-99", "100-499", "500-999", "1000+"}
 
@@ -33,6 +34,7 @@ def _error(code, message, status):
 
 
 def _today():
+    # Cùng mốc UTC với date('now') của SQLite trong các truy vấn công khai.
     return datetime.now(timezone.utc).date()
 
 
@@ -186,11 +188,18 @@ def company_profile():
     website = _company_profile_value(data, company, "website")
     company_size = _company_profile_value(data, company, "company_size")
     business_industries = _company_profile_value(data, company, "business_industries")
+    industry = _company_profile_value(data, company, "industry")
     primary_industry = _company_profile_value(data, company, "primary_industry")
+    if "industry" in data and "primary_industry" not in data:
+        primary_industry = industry
+    elif "primary_industry" in data and "industry" not in data:
+        industry = primary_industry
     address = _company_profile_value(data, company, "address")
     for label, value, limit in (("Tên doanh nghiệp", name, MAX_LEN["company_name"]),
                                 ("Mô tả", description, MAX_LEN["company_description"]),
-                                ("Website", website, MAX_LEN["website"])):
+                                ("Website", website, MAX_LEN["website"]),
+                                ("Ngành nghề", industry, MAX_LEN["industry"]),
+                                ("Địa chỉ", data.get("address"), MAX_LEN["address"])):
         if value is not None and not isinstance(value, str):
             return _error("invalid_input", f"{label} phải là chuỗi văn bản.", 400)
         if value and len(value.strip()) > limit:
@@ -201,6 +210,7 @@ def company_profile():
         return _error("invalid_input", site_error, 400)
     for label, value, limit in (("Lĩnh vực kinh doanh", business_industries, MAX_LEN["business_industries"]),
                                 ("Ngành nghề chính", primary_industry, MAX_LEN["primary_industry"]),
+                                ("Ngành nghề", industry, MAX_LEN["industry"]),
                                 ("Địa chỉ", address, MAX_LEN["address"])):
         if not isinstance(value, str):
             return _error("invalid_input", f"{label} phải là chuỗi văn bản.", 400)
@@ -210,11 +220,12 @@ def company_profile():
         return _error("invalid_input", "Quy mô công ty không hợp lệ.", 400)
     db.execute("""
         UPDATE companies SET company_name = ?, description = ?, website = ?, company_size = ?,
-            business_industries = ?, primary_industry = ?, address = ?,
+            business_industries = ?, primary_industry = ?, industry = ?, address = ?,
             approval_status = 'pending', review_note = '', reviewed_by = NULL, reviewed_at = NULL
         WHERE user_id = ?
-    """, (name.strip(), description.strip(), website, company_size, business_industries.strip(),
-          primary_industry.strip(), address.strip(), session["user_id"]))
+    """, (name.strip(), (description or "").strip(), website, company_size,
+          business_industries.strip(), primary_industry.strip(), industry.strip(), address.strip(),
+          session["user_id"]))
     db.commit()
     return jsonify({"message": "Đã cập nhật hồ sơ; doanh nghiệp cần được duyệt lại."})
 
@@ -223,8 +234,10 @@ def company_profile():
 def public_company_profile(company_id):
     """A safe public profile used by the share link and student discovery pages."""
     row = get_db().execute("""
-        SELECT c.id, c.company_name, c.description, c.website, c.company_size,
-               c.business_industries, c.primary_industry, c.address, c.created_at
+         SELECT c.id, c.company_name, c.description, c.website, c.company_size,
+             c.business_industries, c.primary_industry,
+             COALESCE(NULLIF(c.industry, ''), c.primary_industry) AS industry,
+             c.address, c.created_at
         FROM companies c JOIN users u ON u.id = c.user_id
         WHERE c.id = ? AND c.approval_status = 'approved' AND u.is_active = 1
     """, (company_id,)).fetchone()

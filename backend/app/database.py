@@ -29,6 +29,7 @@ MIGRATION_COLUMNS = [
     ("companies", "company_size", "TEXT NOT NULL DEFAULT ''"),
     ("companies", "business_industries", "TEXT NOT NULL DEFAULT ''"),
     ("companies", "primary_industry", "TEXT NOT NULL DEFAULT ''"),
+    ("companies", "industry", "TEXT NOT NULL DEFAULT ''"),
     ("companies", "address", "TEXT NOT NULL DEFAULT ''"),
 ]
 
