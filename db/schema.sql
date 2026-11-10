@@ -36,6 +36,11 @@ CREATE TABLE IF NOT EXISTS companies (
     company_name TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
     website TEXT NOT NULL DEFAULT '',
+    company_size TEXT NOT NULL DEFAULT '',
+    business_industries TEXT NOT NULL DEFAULT '',
+    primary_industry TEXT NOT NULL DEFAULT '',
+    industry TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
     approval_status TEXT NOT NULL DEFAULT 'pending'
         CHECK (approval_status IN ('pending', 'approved', 'rejected')),
     review_note TEXT NOT NULL DEFAULT '',
@@ -159,8 +164,7 @@ CREATE TABLE IF NOT EXISTS wards (
     FOREIGN KEY (province_code)
         REFERENCES provinces(code)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    UNIQUE (province_code, name)
+        ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_wards_province_code
 ON wards(province_code);

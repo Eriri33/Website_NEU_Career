@@ -4,7 +4,7 @@
     python scripts/import_administrative_units.py
     python scripts/seed_business_demo.py
 
-Tài khoản demo:
+Tài khoản demo (mật khẩu chỉ dùng để trình diễn, KHÔNG dùng cho môi trường thật):
     admin@demo.neu.vn / admin123          (admin)
     business@demo.neu.vn / demo1234       (doanh nghiệp đã duyệt)
     business2@demo.neu.vn / demo1234      (doanh nghiệp thứ hai, để thử quyền sở hữu)
@@ -90,15 +90,20 @@ def main():
         for name in CATEGORIES:
             db.execute("INSERT OR IGNORE INTO job_categories (name) VALUES (?)", (name,))
 
-        def company(email, name, desc, site):
+        def company(email, name, desc, site, size="", industry="", address=""):
             uid = user(db, email, "business")
             if not db.execute("SELECT 1 FROM companies WHERE user_id = ?", (uid,)).fetchone():
-                db.execute("INSERT INTO companies (user_id, company_name, description, website, approval_status, reviewed_by, reviewed_at) "
-                           "VALUES (?, ?, ?, ?, 'approved', ?, CURRENT_TIMESTAMP)", (uid, name, desc, site, admin_id))
+                db.execute("INSERT INTO companies (user_id, company_name, description, website, company_size, industry, address, "
+                           "approval_status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?, CURRENT_TIMESTAMP)",
+                           (uid, name, desc, site, size, industry, address, admin_id))
+            else:  # DB cũ đã seed trước khi có 3 trường mới: điền bổ sung nếu đang trống
+                db.execute("UPDATE companies SET company_size = ?, industry = ?, address = ? WHERE user_id = ? AND company_size = '' AND industry = '' AND address = ''",
+                           (size, industry, address, uid))
             return db.execute("SELECT id FROM companies WHERE user_id = ?", (uid,)).fetchone()["id"]
 
         c1 = company("business@demo.neu.vn", "Công ty Cổ phần Giải pháp Số Hoàng Long",
-                     "Đơn vị tư vấn và triển khai giải pháp quản trị doanh nghiệp, thường xuyên nhận sinh viên NEU thực tập.", "https://example.com")
+                     "Đơn vị tư vấn và triển khai giải pháp quản trị doanh nghiệp, thường xuyên nhận sinh viên NEU thực tập.", "https://example.com",
+                     "25-99", "Công nghệ thông tin", f"Số 207 Giải Phóng, Phường Bạch Mai, {HN}")
         c2 = company("business2@demo.neu.vn", "Công ty TNHH Thương mại Đông Á", "Doanh nghiệp thương mại, dùng để kiểm tra quyền sở hữu dữ liệu.", "")
 
         cats = {r["name"]: r["id"] for r in db.execute("SELECT id, name FROM job_categories")}

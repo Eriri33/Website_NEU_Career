@@ -4,11 +4,9 @@ The staff interface uses the Vue Notus dashboard as a visual reference, adapted 
 
 ## Run
 
-1. Activate the existing virtual environment.
-2. Install dependencies from `requirements.txt` if needed.
-3. Initialize the database only for a new/empty database: `flask --app run.py init-db`.
-4. Start the application with the project's existing command (`python run.py`).
-5. Open `http://127.0.0.1:5000/admin/login` and sign in with an Admin or Moderator account.
+1. Run `run.cmd` from the project root. It creates the virtual environment if needed,
+   installs dependencies when Flask is missing, initializes the database, and starts the server.
+2. Open `http://127.0.0.1:5000/admin/login` and sign in with an Admin or Moderator account.
 
 ## Staff pages
 
@@ -24,10 +22,10 @@ The pages call the existing `/api/admin/*` endpoints. Backend authorization rema
 
 ## Files added/changed
 
-- Added `app/admin/pages.py` for HTML page routes, separate from the JSON API blueprint.
-- Updated `app/__init__.py` to register the page blueprint at `/admin`.
-- Added templates under `app/templates/admin/`.
-- Added `app/static/css/admin.css` and `app/static/js/admin.js`.
+- Added `backend/app/admin/pages.py` for HTML page routes, separate from the JSON API blueprint.
+- Updated `backend/app/__init__.py` to register the page blueprint at `/admin`.
+- Added templates under `frontend/templates/admin/`.
+- Added `frontend/static/css/admin.css` and `frontend/static/js/admin.js`.
 
 The existing Admin API routes and other team modules were not intentionally changed.
 

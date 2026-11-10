@@ -719,7 +719,7 @@ Các filter cơ bản `q`, `major`, `location`, `job_type`, `category_id` của 
 ## 17. Phạm vi bảo mật
 
 - Đây là contract cho MVP/demo, không phải production guarantee.
-- Trước khi deploy thực tế cần secret key an toàn, HTTPS, CSRF protection và biện pháp bảo vệ file upload.
+- Trước khi deploy thực tế cần đặt `SECRET_KEY` ổn định, ngẫu nhiên và dùng chung giữa các worker, bật HTTPS, CSRF protection và bảo vệ file upload. Nếu không đặt biến này, ứng dụng tạo khóa tạm thời theo tiến trình; phiên đăng nhập sẽ hết hiệu lực khi khởi động lại ứng dụng.
 - Backend phải lấy user ID/role từ session, không tin role gửi từ frontend.
 - Các thao tác đóng tin/rút đơn/vô hiệu hóa tài khoản giữ lịch sử; không diễn giải `DELETE` là luôn xóa vật lý.
 - Các search endpoint quản trị phải áp dụng role guard **trước** khi truy vấn; business search phải giới hạn ownership **trước** khi filter.

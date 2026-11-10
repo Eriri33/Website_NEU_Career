@@ -6,7 +6,7 @@ Bạn đang làm tiếp dự án nhóm Career Connect, Flask + SQLite + Jinja/HT
 1. `README.md` — mục tiêu, module, vai trò, thứ tự ưu tiên và audit hiện trạng.
 2. `docs/API_CONTRACT.md` — contract mục tiêu: endpoints, parameters, fields, permission, statuses.
 3. `docs/SEARCH_UI_SPEC.md` — hành vi giao diện tìm kiếm/lọc theo ảnh mẫu.
-4. `db/schema.sql`, `app/__init__.py`, `app/*/routes.py`, `app/auth/guards.py`, `tests/test_api.py` — code thực tế trước khi sửa.
+4. `db/schema.sql`, `backend/app/__init__.py`, `backend/app/*/routes.py`, `backend/app/auth/guards.py`, `tests/test_api.py` — code thực tế trước khi sửa.
 
 ## Thứ tự thực hiện
 1. Kiểm tra code thực tế và liệt kê file/endpoint hiện có; không đoán.

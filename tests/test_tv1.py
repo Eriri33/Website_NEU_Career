@@ -28,7 +28,6 @@ class TV1TestCase(unittest.TestCase):
 
     def _seed_test_data(self):
         # Seed student, business, categories, jobs, career
-        from seed import seed
         # Direct DB seeding for test isolation
         conn = sqlite3.connect(str(self.db_path))
         from werkzeug.security import generate_password_hash
@@ -149,7 +148,68 @@ class TV1TestCase(unittest.TestCase):
         self.assertEqual(users.status_code, 200)
         self.assertEqual(users.get_json()[0]["email"], "student@test.com")
 
+    def test_q_matches_skills_and_parent_category_includes_children(self):
+        conn = sqlite3.connect(str(self.db_path))
+        conn.execute("UPDATE jobs SET skills_required = 'Docker, Kubernetes' WHERE id = ?", (self.approved_job_id,))
+        parent = conn.execute("INSERT INTO job_categories (name, level) VALUES ('Nhóm nghề test', 1)").lastrowid
+        child = conn.execute("INSERT INTO job_categories (name, parent_id, level) VALUES ('Nghề con test', ?, 2)",
+                             (parent,)).lastrowid
+        conn.execute("UPDATE jobs SET category_id = ? WHERE id = ?", (child, self.approved_job_id))
+        conn.commit()
+        conn.close()
+
+        # q khớp cả kỹ năng (ô tìm kiếm ghi "Vị trí tuyển dụng, kỹ năng...")
+        res = self.client.get("/api/jobs", query_string={"q": "kubernetes"})
+        self.assertEqual([j["id"] for j in res.get_json()], [self.approved_job_id])
+
+        # từ khóa phổ biến = tên danh mục -> q phải tìm được theo tên danh mục
+        res = self.client.get("/api/jobs", query_string={"q": "nghe con test"})
+        self.assertEqual([j["id"] for j in res.get_json()], [self.approved_job_id])
+
+        # chọn danh mục cha phải ra tin của danh mục con
+        res = self.client.get("/api/jobs", query_string={"category_ids": str(parent)})
+        self.assertEqual([j["id"] for j in res.get_json()], [self.approved_job_id])
+
+        # category_ids không tồn tại -> rỗng, không được bỏ lọc
+        res = self.client.get("/api/jobs", query_string={"category_ids": "99999"})
+        self.assertEqual(res.get_json(), [])
+
+        cats = {c["id"]: c for c in self.client.get("/api/jobs/categories").get_json()}
+        self.assertEqual(cats[parent]["job_count"], 1)
+        self.assertEqual(cats[child]["job_count"], 1)
+
+    def test_category_count_ignores_expired_jobs_and_suggestions_stats(self):
+        conn = sqlite3.connect(str(self.db_path))
+        conn.execute("UPDATE jobs SET deadline = '2000-01-01' WHERE id = ?", (self.approved_job_id,))
+        conn.commit()
+        conn.close()
+        cats = self.client.get("/api/jobs/categories").get_json()
+        self.assertEqual(sum(c["job_count"] for c in cats), 0)
+        self.assertEqual(self.client.get("/api/jobs/suggestions").get_json()["stats"],
+                         {"total_jobs": 0, "total_companies": 0})
+
+    def test_career_search_is_accent_insensitive(self):
+        conn = sqlite3.connect(str(self.db_path))
+        conn.execute("INSERT INTO career_contents (title, summary, body, category, status) "
+                     "VALUES ('Phỏng vấn online', 's', 'b', 'Phỏng vấn', 'published')")
+        conn.commit()
+        conn.close()
+        titles = [a["title"] for a in self.client.get("/api/career-contents", query_string={"q": "phong van"}).get_json()]
+        self.assertEqual(titles, ["Phỏng vấn online"])
+
+    def test_public_pages_are_separate(self):
+        home = self.client.get("/")
+        jobs = self.client.get("/jobs")
+        blog = self.client.get("/blog")
+
+        self.assertEqual(home.status_code, 200)
+        self.assertIn(b"M\xe1\xbb\x9f l\xe1\xbb\x91i t\xc6\xb0\xc6\xa1ng lai", home.data)
+        self.assertNotIn(b'id="searchForm"', home.data)
+        self.assertEqual(jobs.status_code, 200)
+        self.assertIn(b'id="searchForm"', jobs.data)
+        self.assertEqual(blog.status_code, 200)
+        self.assertIn(b'id="blogCards"', blog.data)
+
 
 if __name__ == "__main__":
     unittest.main()
-

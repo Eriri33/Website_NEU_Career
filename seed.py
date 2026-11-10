@@ -104,7 +104,7 @@ def seed():
          "Hà Nội", "full_time", "", "JavaScript, React, Node.js, MongoDB", "15-25 triệu/tháng", "negotiable", "2027-04-30"),
         (c2[0] if c2 else 1, cat_ids.get("Công nghệ thông tin"), "QA Tester Intern",
          "Kiểm thử phần mềm, viết test case, báo cáo bug. Cơ hội được đào tạo về automation testing.",
-         "Đà Nẵng", "internship", "", "Kiểm thử phần mềm, Jira", "4-6 triệu/tháng", "work", "2027-03-15"),
+         "Đà Nẵng", "internship", "", "Kiểm thử phần mềm, Jira", "4-6 triệu/tháng", "working", "2027-03-15"),
         (c3[0] if c3 else 1, cat_ids.get("Marketing"), "Content Marketing Intern",
          "Sáng tạo nội dung cho các kênh social media, viết blog và email marketing.",
          "Hồ Chí Minh", "internship", "Marketing", "Content Writing, SEO, Canva", "5-7 triệu/tháng", "off", "2027-01-31"),
@@ -127,14 +127,17 @@ def seed():
 
     reviewer_id = user_ids.get("admin@neu.edu.vn")
     for company_id, cat_id, title, desc, loc, jtype, major, skills, salary, sat, deadline in jobs_data:
+        # Chạy seed nhiều lần không được nhân đôi tin (bảng jobs không có UNIQUE theo tiêu đề).
+        if cur.execute("SELECT 1 FROM jobs WHERE company_id = ? AND title = ?", (company_id, title)).fetchone():
+            continue
         try:
             cur.execute("""INSERT INTO jobs (company_id, category_id, title, description, location, job_type,
                 major_required, skills_required, salary_text, saturday_policy, deadline, status,
                 reviewed_by, reviewed_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, CURRENT_TIMESTAMP)""",
                 (company_id, cat_id, title, desc, loc, jtype, major, skills, salary, sat, deadline, reviewer_id))
-        except sqlite3.IntegrityError:
-            pass
+        except sqlite3.IntegrityError as exc:
+            print(f"[WARN] Bỏ qua tin '{title}': {exc}")
     conn.commit()
 
     # ===== CAREER CONTENTS =====
@@ -172,6 +175,8 @@ Sinh viên nên rèn luyện các kỹ năng này song song với kiến thức 
          "Phỏng vấn", "published"),
     ]
     for title, summary, body, category, status in career_items:
+        if cur.execute("SELECT 1 FROM career_contents WHERE title = ?", (title,)).fetchone():
+            continue
         try:
             cur.execute("""INSERT INTO career_contents (title, summary, body, category, status, author_id)
                 VALUES (?, ?, ?, ?, ?, ?)""",

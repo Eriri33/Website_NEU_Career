@@ -146,6 +146,12 @@ def import_data(db, provinces, wards):
 
     # Import phường/xã
     for code, (name, level, province_code) in wards.items():
+        # schema.sql có UNIQUE(province_code, name). Nếu DB đã có dòng cùng tên nhưng khác mã
+        # (dữ liệu cũ/demo), CSV chính thức được ưu tiên để import không bị IntegrityError.
+        db.execute(
+            "DELETE FROM wards WHERE province_code = ? AND name = ? AND code <> ?",
+            (province_code, name, code)
+        )
         db.execute("""
             INSERT INTO wards (
                 code,

@@ -1,4 +1,5 @@
-"""
+"""Test module TV2 — Business Recruitment Journey (/api/company/*, /api/locations/*).
+
 Chạy: python -m unittest tests.test_business -v
 """
 import os
@@ -114,6 +115,40 @@ class CompanyProfileTests(BusinessBase):
         self.assertEqual(put(company_name="X" * 151).status_code, 400)
         self.assertEqual(put(company_name="X", website="https://ok.vn").status_code, 200)
         self.assertEqual(self.client.put("/api/company/profile", json=["bad"]).status_code, 400)
+
+    def test_profile_new_fields_roundtrip_and_old_clients_keep_them(self):
+        self.register("a@example.com", "business")
+        self.as_user("a@example.com")
+        empty = self.client.get("/api/company/profile").json
+        self.assertEqual((empty["company_size"], empty["industry"], empty["address"]), ("", "", ""))
+        r = self.client.put("/api/company/profile", json={
+            "company_name": "Công ty A", "description": "x", "website": "",
+            "company_size": "25-99", "industry": "Bảo hiểm",
+            "address": "B7 An Phú New City, Phường An Phú, Thành phố Hồ Chí Minh"})
+        self.assertEqual(r.status_code, 200, r.json)
+        p = self.client.get("/api/company/profile").json
+        self.assertEqual((p["company_size"], p["industry"]), ("25-99", "Bảo hiểm"))
+        self.assertIn("An Phú", p["address"])
+        # Client cũ chỉ gửi 3 trường cũ: không được làm mất 3 trường mới.
+        self.assertEqual(self.client.put("/api/company/profile", json={"company_name": "Công ty A2"}).status_code, 200)
+        p = self.client.get("/api/company/profile").json
+        self.assertEqual((p["company_name"], p["company_size"], p["industry"]), ("Công ty A2", "25-99", "Bảo hiểm"))
+        # Gửi chuỗi rỗng thì xóa giá trị.
+        self.client.put("/api/company/profile", json={"company_name": "Công ty A2", "company_size": "", "industry": "", "address": ""})
+        p = self.client.get("/api/company/profile").json
+        self.assertEqual((p["company_size"], p["industry"], p["address"]), ("", "", ""))
+
+    def test_profile_new_fields_validation(self):
+        self.register("a@example.com", "business")
+        self.as_user("a@example.com")
+        put = lambda **kw: self.client.put("/api/company/profile", json={"company_name": "X", **kw})
+        self.assertEqual(put(company_size="lon").status_code, 400)
+        self.assertEqual(put(company_size=50).status_code, 400)
+        self.assertEqual(put(industry="x" * 151).status_code, 400)
+        self.assertEqual(put(address="x" * 256).status_code, 400)
+        self.assertEqual(put(industry=123).status_code, 400)
+        for size in ("1-9", "10-24", "25-99", "100-499", "500-999", "1000+"):
+            self.assertEqual(put(company_size=size).status_code, 200, size)
 
     def test_roles_and_anonymous(self):
         self.assertEqual(self.client.get("/api/company/profile").status_code, 401)
@@ -402,12 +437,16 @@ class LocationAndMigrationTests(BusinessBase):
         db.executescript("""
             CREATE TABLE jobs (id INTEGER PRIMARY KEY, title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending');
             INSERT INTO jobs (title) VALUES ('Tin cũ');
+            CREATE TABLE companies (id INTEGER PRIMARY KEY, company_name TEXT NOT NULL);
+            INSERT INTO companies (company_name) VALUES ('Công ty cũ');
         """)
         db.row_factory = sqlite3.Row
         migrate_db(db)
         migrate_db(db)  # chạy lần hai không lỗi
         row = db.execute("SELECT * FROM jobs").fetchone()
         self.assertEqual((row["title"], row["saturday_policy"], row["salary_text"]), ("Tin cũ", "unknown", "Thỏa thuận"))
+        co = db.execute("SELECT * FROM companies").fetchone()
+        self.assertEqual((co["company_name"], co["company_size"], co["industry"], co["address"]), ("Công ty cũ", "", "", ""))
         db.close()
 
 
@@ -417,16 +456,23 @@ class BusinessPagesTests(BusinessBase):
                      "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
-            self.assertIn("/business/login", r.headers["Location"])
-        self.assertEqual(self.client.get("/business/login").status_code, 200)
+            self.assertIn("/login?next=", r.headers["Location"])
+            self.assertIn("reason=auth", r.headers["Location"])
+        business_login = self.client.get("/business/login")
+        self.assertEqual(business_login.status_code, 302)
+        self.assertIn("/login", business_login.headers["Location"])
         self.register("s@example.com", "student")
         self.as_user("s@example.com")
         self.assertIn("reason=role", self.client.get("/business/dashboard").headers["Location"])
         self.register("a@example.com", "business")
         self.as_user("a@example.com")
         for path in ("/business/dashboard", "/business/jobs", "/business/jobs/new", "/business/jobs/1",
-                     "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
+             "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
             self.assertEqual(self.client.get(path).status_code, 200, path)
+
+        business_login = self.client.get("/business/login")
+        self.assertEqual(business_login.status_code, 302)
+        self.assertEqual(business_login.headers["Location"], "/business/dashboard")
         self.assertEqual(self.client.get("/business/login").status_code, 302)  # đã đăng nhập -> dashboard
 
 
