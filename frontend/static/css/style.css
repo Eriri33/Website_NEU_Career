@@ -1012,3 +1012,261 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
   .jobs-hero .hero-content { min-height: 0; }
   .jobs-hero .hero-photo { height: 210px; }
 }
+
+/* ===== JOB COMPARISON ===== */
+.compare-page {
+  min-height: 70vh;
+  padding-top: 55px;
+  padding-bottom: 70px;
+}
+
+.compare-heading {
+  margin-bottom: 30px;
+}
+
+.compare-heading h1 {
+  font-size: 34px;
+  color: var(--navy);
+  margin: 10px 0;
+}
+
+.compare-heading > p:last-child {
+  color: var(--muted);
+}
+
+.compare-picker {
+  background: #f5f9ff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 30px;
+}
+
+.compare-picker label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.compare-picker-row {
+  display: flex;
+  gap: 12px;
+}
+
+.compare-picker-row select {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.compare-message {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.compare-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.compare-table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  background: white;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.compare-table thead th {
+  background: #edf4ff;
+  color: var(--navy);
+}
+
+.compare-table tbody th {
+  width: 18%;
+  color: var(--ink);
+  background: #f8faff;
+}
+
+.compare-table td {
+  color: var(--muted);
+}
+
+.compare-table tr:last-child th,
+.compare-table tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .compare-picker-row {
+    flex-direction: column;
+  }
+
+  .compare-heading h1 {
+    font-size: 27px;
+  }
+}
+/* ===== JOB LOCATION COMPARISON ===== */
+
+.location-compare {
+  margin-top: 36px;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.location-compare-heading {
+  margin-bottom: 20px;
+}
+
+.location-compare-heading h2 {
+  margin: 6px 0;
+}
+
+.location-compare-heading p {
+  color: #64748b;
+}
+
+.location-input-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.location-input-row input {
+  flex: 1;
+  min-width: 220px;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.distance-result {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.distance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.distance-card span {
+  color: #475569;
+}
+
+.distance-card strong {
+  color: #2563eb;
+  font-size: 24px;
+}
+
+#showMapButton {
+  margin: 8px 0 18px;
+}
+
+#comparisonMap {
+  width: 100%;
+  height: 420px;
+  margin-top: 16px;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .location-compare {
+    padding: 18px;
+  }
+
+  .distance-result {
+    grid-template-columns: 1fr;
+  }
+
+  .location-input-row {
+    flex-direction: column;
+  }
+
+  .location-input-row button {
+    width: 100%;
+  }
+}
+
+/* ===== ADDRESS AUTOCOMPLETE ===== */
+
+.address-autocomplete {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.address-autocomplete input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.address-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.address-suggestions[hidden] {
+  display: none;
+}
+
+.address-suggestion {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  color: #334155;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.address-suggestion:last-child {
+  border-bottom: 0;
+}
+
+.address-suggestion:hover {
+  background: #eff6ff;
+}
+
+.address-suggestion:disabled {
+  color: #64748b;
+  cursor: default;
+  background: #fff;
+}

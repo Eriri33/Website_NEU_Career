@@ -242,8 +242,14 @@ async function openJob(id) {
         <p>${esc(j.skills_required) || 'Chưa cập nhật'}</p>
       </div>
       ${j.company_description ? `<div class="detail-section"><h4>🏢 Về doanh nghiệp</h4><p>${esc(j.company_description)}</p></div>` : ''}
-      ${j.company_website ? `<div class="detail-section"><h4>🌐 Website</h4><p><a href="${esc(j.company_website)}" target="_blank" style="color:var(--blue)">${esc(j.company_website)}</a></p></div>` : ''}
+      ${j.company_website ? `<div class="detail-section"><h4>🌐 Website</h4><p><a href="${esc(j.company_website)}" target="_blank" style="color:var(--blue)">${esc(j.company_website)}</a></p></div>`: ''}
       <hr>
+      <div class="compare-action">
+        <button class="btn btn-outline full" onclick="startJobComparison(${j.id})">
+          So sánh công việc này
+        </button>
+      </div>
+      <div class="apply-section">
       <div class="apply-section">
         <h4>✍️ Ứng tuyển vào vị trí này</h4>
         <textarea id="coverLetter" placeholder="Lời nhắn cho nhà tuyển dụng (không bắt buộc)..."></textarea>
@@ -256,6 +262,20 @@ async function openJob(id) {
   }
 }
 
+/* ===== JOB COMPARISON ===== */
+function startJobComparison(id) {
+  if (!currentUser) {
+    location.href = '/login?next=' + encodeURIComponent('/jobs/compare?job1=' + id);
+    return;
+  }
+
+  if (currentUser.role !== 'student') {
+    toast('Chỉ sinh viên mới có thể sử dụng chức năng so sánh.');
+    return;
+  }
+
+  location.href = '/jobs/compare?job1=' + encodeURIComponent(id);
+}
 /* ===== APPLY JOB ===== */
 async function applyJob(id) {
   if (!currentUser) {
