@@ -80,7 +80,8 @@ def pending_jobs():
 
     sql = """
         SELECT j.id, j.title, j.description, j.created_at,
-               j.category_id, j.location, j.job_type, c.company_name
+            j.category_id, j.location, j.job_type,
+            c.id AS company_id, c.company_name
         FROM jobs j
         JOIN companies c ON c.id = j.company_id
         JOIN users u ON u.id = c.user_id
@@ -237,21 +238,57 @@ def review_job(job_id):
 def review_histories():
     entity_type = request.args.get("entity_type")
     entity_id = request.args.get("entity_id", type=int)
-    sql = """SELECT h.id, h.entity_type, h.entity_id, h.action, h.note, h.created_at,
-                    u.email AS reviewer_email
-             FROM review_histories h LEFT JOIN users u ON u.id = h.reviewer_id WHERE 1=1"""
+
+    sql = """
+        SELECT
+            h.id,
+            h.entity_type,
+            h.entity_id,
+            h.action,
+            h.note,
+            h.created_at,
+
+            CASE
+                WHEN h.entity_type = 'company' THEN c.company_name
+                WHEN h.entity_type = 'job' THEN j.title
+            END AS entity_name,
+
+            u.email AS reviewer_email
+
+        FROM review_histories h
+
+        LEFT JOIN companies c
+            ON h.entity_type = 'company'
+            AND c.id = h.entity_id
+
+        LEFT JOIN jobs j
+            ON h.entity_type = 'job'
+            AND j.id = h.entity_id
+
+        LEFT JOIN users u
+            ON u.id = h.reviewer_id
+
+        WHERE 1=1
+    """
+
     params = []
+
     if entity_type:
         if entity_type not in ("company", "job"):
             return jsonify({"error": "invalid_entity_type"}), 400
+
         sql += " AND h.entity_type = ?"
         params.append(entity_type)
+
     if entity_id is not None:
         sql += " AND h.entity_id = ?"
         params.append(entity_id)
-    sql += " ORDER BY h.created_at DESC"
-    return jsonify([dict(row) for row in get_db().execute(sql, params).fetchall()])
 
+    sql += " ORDER BY h.created_at DESC"
+
+    rows = get_db().execute(sql, params).fetchall()
+
+    return jsonify([dict(row) for row in rows])
 
 
 # ------------------------------- Staff dashboard -------------------------------

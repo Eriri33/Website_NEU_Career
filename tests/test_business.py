@@ -50,7 +50,7 @@ class BusinessBase(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    # helpers 
+    # helpers
     def as_user(self, email, password="secret123"):
         """Chuyển phiên đăng nhập sang tài khoản khác."""
         self.client.post("/api/auth/logout")
@@ -456,16 +456,23 @@ class BusinessPagesTests(BusinessBase):
                      "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
-            self.assertIn("/business/login", r.headers["Location"])
-        self.assertEqual(self.client.get("/business/login").status_code, 200)
+            self.assertIn("/login?next=", r.headers["Location"])
+            self.assertIn("reason=auth", r.headers["Location"])
+        business_login = self.client.get("/business/login")
+        self.assertEqual(business_login.status_code, 302)
+        self.assertIn("/login", business_login.headers["Location"])
         self.register("s@example.com", "student")
         self.as_user("s@example.com")
         self.assertIn("reason=role", self.client.get("/business/dashboard").headers["Location"])
         self.register("a@example.com", "business")
         self.as_user("a@example.com")
         for path in ("/business/dashboard", "/business/jobs", "/business/jobs/new", "/business/jobs/1",
-                     "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
+             "/business/jobs/1/edit", "/business/applicants", "/business/profile"):
             self.assertEqual(self.client.get(path).status_code, 200, path)
+
+        business_login = self.client.get("/business/login")
+        self.assertEqual(business_login.status_code, 302)
+        self.assertEqual(business_login.headers["Location"], "/business/dashboard")
         self.assertEqual(self.client.get("/business/login").status_code, 302)  # đã đăng nhập -> dashboard
 
 

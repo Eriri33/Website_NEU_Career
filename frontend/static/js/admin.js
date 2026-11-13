@@ -16,73 +16,265 @@
   const date = value => value ? new Date(value.replace(' ','T')+'Z').toLocaleDateString('vi-VN') : '—';
   const status = value => `<span class="status ${esc(value)}">${({pending:'Chờ duyệt',approved:'Đã duyệt',rejected:'Từ chối',draft:'Bản nháp',published:'Đã xuất bản',active:'Hoạt động',inactive:'Đã khóa',closed:'Đã đóng'})[value]||esc(value)}</span>`;
   async function review(type,id,decision){
-    let note=''; if(decision==='rejected'){note=prompt('Nhập lý do từ chối (có thể để trống):')??null;if(note===null)return;} 
+    let note=''; if(decision==='rejected'){note=prompt('Nhập lý do từ chối (có thể để trống):')??null;if(note===null)return;}
     try{await api(`/api/admin/${type}/${id}/review`,{method:'POST',body:JSON.stringify({decision,note})});toast(decision==='approved'?'Đã phê duyệt.':'Đã từ chối.');type==='companies'?loadCompanies():loadJobs();}
     catch(e){toast(e.message,true);}
   }
   function bindSearch(input, callback){const el=$(input);if(el)el.addEventListener('input',callback);}
-  async function loadCompanies(){
-    const body=$('#companiesTable');if(!body)return;body.innerHTML='<tr><td colspan="6" class="empty-cell">Đang tải...</td></tr>';
-    try{const rows=await api('/api/admin/pending/companies');const q=($('#companySearch')?.value||'').toLowerCase();const filtered=rows.filter(x=>`${x.company_name} ${x.email}`.toLowerCase().includes(q));$('#companyCount').textContent=`${filtered.length} hồ sơ`;
-      body.innerHTML=filtered.length?filtered.map(x=>`<tr><td><div class="cell-main">${esc(x.company_name)}</div><div class="cell-sub">Mã doanh nghiệp #${x.id}</div></td><td>${esc(x.email)}</td><td>${x.website?`<a href="${esc(x.website)}" target="_blank" rel="noopener">${esc(x.website)}</a>`:'—'}</td><td>${date(x.created_at)}</td><td>${status('pending')}</td><td><div class="actions"><button class="action-btn action-approve" data-company-approve="${x.id}">Duyệt</button><button class="action-btn action-reject" data-company-reject="${x.id}">Từ chối</button></div></td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">Không có hồ sơ phù hợp.</td></tr>';
-    }catch(e){body.innerHTML=`<tr><td colspan="6" class="empty-cell">${esc(e.message)}. Hãy đăng nhập bằng tài khoản Admin/Moderator.</td></tr>`;}
-  }
+
+async function loadCompanies() {
+    const body = $('#companiesTable');
+    if (!body) return;
+
+    body.innerHTML = '<tr><td colspan="6" class="empty-cell">Đang tải...</td></tr>';
+
+    try {
+        const rows = await api('/api/admin/pending/companies');
+        const q = ($('#companySearch')?.value || '').toLowerCase();
+
+        const filtered = rows.filter(x =>
+            `${x.company_name} ${x.email}`.toLowerCase().includes(q)
+        );
+
+        $('#companyCount').textContent = `${filtered.length} hồ sơ`;
+
+        body.innerHTML = filtered.length
+            ? filtered.map(x => `
+                <tr>
+                    <td>
+                        <a class="cell-main job-detail-link"
+                           href="/admin/companies/${x.id}">
+                            ${esc(x.company_name)}
+                        </a>
+                        <div class="cell-sub">Mã doanh nghiệp #${x.id}</div>
+                    </td>
+
+                    <td>
+                        <a class="job-detail-link"
+                           href="/admin/companies/${x.id}">
+                            ${esc(x.email)}
+                        </a>
+                    </td>
+
+                    <td>
+                        ${x.website
+                            ? `<a href="${esc(x.website)}" target="_blank" rel="noopener">${esc(x.website)}</a>`
+                            : '—'}
+                    </td>
+
+                    <td>${date(x.created_at)}</td>
+                    <td>${status('pending')}</td>
+
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn action-approve"
+                                    data-company-approve="${x.id}">
+                                Duyệt
+                            </button>
+                            <button class="action-btn action-reject"
+                                    data-company-reject="${x.id}">
+                                Từ chối
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="6" class="empty-cell">Không có hồ sơ phù hợp.</td></tr>';
+
+    } catch (e) {
+        body.innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(e.message)}. Hãy đăng nhập bằng tài khoản Admin/Moderator.</td></tr>`;
+    }
+}
+
   async function loadJobs() {
-      const body = $('#jobsTable');
-      if (!body) return;
+    const body = $('#jobsTable');
+    if (!body) return;
 
-      body.innerHTML = '<tr><td colspan="7" class="empty-cell">Đang tải...</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty-cell">Đang tải...</td></tr>';
 
-      try {
-          const rows = await api('/api/admin/pending/jobs');
+    try {
+        const rows = await api('/api/admin/pending/jobs');
+        const q = ($('#jobSearch')?.value || '').toLowerCase();
 
-          const q = ($('#jobSearch')?.value || '').toLowerCase();
+        const filtered = rows.filter(x =>
+            `${x.title} ${x.company_name} ${x.description} ${x.location || ''}`
+                .toLowerCase()
+                .includes(q)
+        );
 
-          // Tìm kiếm theo tiêu đề, doanh nghiệp, mô tả và địa điểm
-          const filtered = rows.filter(x =>
-              `${x.title} ${x.company_name} ${x.description} ${x.location || ''}`
-                  .toLowerCase()
-                  .includes(q)
-          );
+        $('#jobCount').textContent = `${filtered.length} tin`;
 
-          $('#jobCount').textContent = `${filtered.length} tin`;
+        body.innerHTML = filtered.length
+            ? filtered.map(x => `
+                <tr>
+                    <td>
+                        <a class="cell-main job-detail-link"
+                           href="/admin/jobs/${x.id}">
+                            ${esc(x.title)}
+                        </a>
+                        <div class="cell-sub">Mã tin #${x.id}</div>
+                    </td>
 
-          body.innerHTML = filtered.length
-              ? filtered.map(x => `
-                  <tr>
-                      <td>
-                          <div class="cell-main">${esc(x.title)}</div>
-                          <div class="cell-sub">Mã tin #${x.id}</div>
-                      </td>
-                      <td>${esc(x.company_name)}</td>
-                      <td>${esc(x.location || '—')}</td>
-                      <td>
-                          <div class="cell-sub" title="${esc(x.description)}">
-                              ${esc(x.description || '')}
-                          </div>
-                      </td>
-                      <td>${date(x.created_at)}</td>
-                      <td>${status('pending')}</td>
-                      <td>
-                          <div class="actions">
-                              <button class="action-btn action-approve"
-                                  data-job-approve="${x.id}">Duyệt</button>
-                              <button class="action-btn action-reject"
-                                  data-job-reject="${x.id}">Từ chối</button>
-                          </div>
-                      </td>
-                  </tr>
-              `).join('')
-              : '<tr><td colspan="7" class="empty-cell">Không có tin tuyển dụng phù hợp.</td></tr>';
+                    <td>
+                        <a class="job-detail-link"
+                           href="/admin/companies/${x.company_id}">
+                            ${esc(x.company_name)}
+                        </a>
+                    </td>
 
-      } catch (e) {
-          body.innerHTML = `<tr><td colspan="7" class="empty-cell">${esc(e.message)}. Hãy đăng nhập bằng tài khoản Admin/Moderator.</td></tr>`;
-      }
-  }
+                    <td>
+                        <button type="button" class="text-link"
+                            data-job-text="${esc(x.location || 'Chưa cập nhật')}"
+                            data-job-text-title="Địa điểm">
+                            ${esc(x.location || '—')}
+                        </button>
+                    </td>
+
+                    <td>
+                        <button type="button" class="text-link description-preview"
+                            data-job-text="${esc(x.description || 'Chưa có mô tả.')}"
+                            data-job-text-title="Mô tả công việc"
+                            title="Xem toàn bộ mô tả">
+                            ${esc(x.description || 'Chưa có mô tả.')}
+                        </button>
+                    </td>
+
+                    <td>${date(x.created_at)}</td>
+                    <td>${status('pending')}</td>
+
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn action-approve"
+                                data-job-approve="${x.id}">Duyệt</button>
+                            <button class="action-btn action-reject"
+                                data-job-reject="${x.id}">Từ chối</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="7" class="empty-cell">Không có tin tuyển dụng phù hợp.</td></tr>';
+
+    } catch (e) {
+        body.innerHTML = `<tr><td colspan="7" class="empty-cell">${esc(e.message)}. Hãy đăng nhập bằng tài khoản Admin/Moderator.</td></tr>`;
+    }
+}
   async function loadUsers(){const body=$('#usersTable');if(!body)return;body.innerHTML='<tr><td colspan="5" class="empty-cell">Đang tải...</td></tr>';try{const p=new URLSearchParams();if($('#userRole').value)p.set('role',$('#userRole').value);if($('#userActive').value)p.set('is_active',$('#userActive').value);const rows=await api('/api/admin/users?'+p);const q=$('#userSearch').value.toLowerCase();const filtered=rows.filter(x=>x.email.toLowerCase().includes(q));body.innerHTML=filtered.length?filtered.map(x=>`<tr><td><div class="cell-main">${esc(x.email)}</div><div class="cell-sub">Tài khoản #${x.id}</div></td><td>${esc(x.role)}</td><td>${date(x.created_at)}</td><td>${status(x.is_active?'active':'inactive')}</td><td><div class="actions"><button class="action-btn action-edit" data-user-toggle="${x.id}" data-active="${x.is_active?0:1}">${x.is_active?'Khóa':'Mở khóa'}</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-cell">Không tìm thấy tài khoản.</td></tr>';}catch(e){body.innerHTML=`<tr><td colspan="5" class="empty-cell">${esc(e.message)}</td></tr>`;}}
   async function loadCategories(){const body=$('#categoriesTable');if(!body)return;try{const rows=await api('/api/admin/categories');const q=$('#categorySearch').value.toLowerCase();const filtered=rows.filter(x=>`${x.name} ${x.description||''}`.toLowerCase().includes(q));body.innerHTML=filtered.length?filtered.map(x=>`<tr><td><div class="cell-main">${esc(x.name)}</div><div class="cell-sub">Mã danh mục #${x.id}</div></td><td>${esc(x.description||'—')}</td><td>${status(x.is_active?'active':'inactive')}</td><td><div class="actions">${role==='admin'?`<button class="action-btn action-edit" data-category-edit="${x.id}">Sửa</button><button class="action-btn action-reject" data-category-delete="${x.id}">Xóa</button>`:'—'}</div></td></tr>`).join(''):'<tr><td colspan="4" class="empty-cell">Chưa có danh mục.</td></tr>';}catch(e){body.innerHTML=`<tr><td colspan="4" class="empty-cell">${esc(e.message)}</td></tr>`;}}
-  async function loadContents(){const body=$('#contentsTable');if(!body)return;try{const rows=await api('/api/admin/career-contents');const q=$('#contentSearch').value.toLowerCase();const st=$('#contentStatus').value;const filtered=rows.filter(x=>`${x.title} ${x.summary||''}`.toLowerCase().includes(q)&&(!st||x.status===st));body.innerHTML=filtered.length?filtered.map(x=>`<tr><td><div class="cell-main">${esc(x.title)}</div><div class="cell-sub">${esc(x.summary||'')}</div></td><td>${esc(x.category||'—')}</td><td>${date(x.updated_at)}</td><td>${status(x.status)}</td><td><div class="actions"><button class="action-btn action-edit" data-content-edit="${x.id}">Sửa</button><button class="action-btn action-reject" data-content-delete="${x.id}">Xóa</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-cell">Chưa có nội dung phù hợp.</td></tr>';}catch(e){body.innerHTML=`<tr><td colspan="5" class="empty-cell">${esc(e.message)}</td></tr>`;}}
-  async function loadHistory(){const body=$('#historyTable');if(!body)return;try{const type=$('#historyType').value;const rows=await api('/api/admin/review-histories'+(type?'?entity_type='+type:''));body.innerHTML=rows.length?rows.map(x=>`<tr><td>${x.entity_type==='company'?'Doanh nghiệp':'Tin tuyển dụng'}</td><td>#${x.entity_id}</td><td>${status(x.action)}</td><td>${esc(x.reviewer_email||'—')}</td><td><div class="cell-sub" title="${esc(x.note||'')}">${esc(x.note||'—')}</div></td><td>${date(x.created_at)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">Chưa có lịch sử kiểm duyệt.</td></tr>';}catch(e){body.innerHTML=`<tr><td colspan="6" class="empty-cell">${esc(e.message)}</td></tr>`;}}
+  async function loadContents() {
+    const body = $('#contentsTable');
+    if (!body) return;
+
+    try {
+        const rows = await api('/api/admin/career-contents');
+        const q = $('#contentSearch').value.toLowerCase();
+        const st = $('#contentStatus').value;
+
+        const filtered = rows.filter(x =>
+            `${x.title} ${x.summary || ''}`.toLowerCase().includes(q) &&
+            (!st || x.status === st)
+        );
+
+        body.innerHTML = filtered.length
+            ? filtered.map(x => `
+                <tr>
+                    <td>
+                        <a class="cell-main job-detail-link"
+                           href="/admin/contents/${x.id}">
+                            ${esc(x.title)}
+                        </a>
+                        <div class="cell-sub">
+                            Mã bài viết #${x.id}
+                        </div>
+                        <div class="cell-sub">
+                            ${esc(x.summary || '')}
+                        </div>
+                    </td>
+
+                    <td>${esc(x.category || '—')}</td>
+                    <td>${date(x.updated_at)}</td>
+                    <td>${status(x.status)}</td>
+
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn action-edit"
+                                data-content-edit="${x.id}">Sửa</button>
+                            <button class="action-btn action-reject"
+                                data-content-delete="${x.id}">Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="5" class="empty-cell">Chưa có nội dung phù hợp.</td></tr>';
+
+    } catch (e) {
+        body.innerHTML = `<tr><td colspan="5" class="empty-cell">${esc(e.message)}</td></tr>`;
+    }
+}
+async function loadHistory() {
+    const body = $('#historyTable');
+    if (!body) return;
+
+    try {
+        const type = $('#historyType').value;
+
+        const rows = await api(
+            '/api/admin/review-histories' +
+            (type ? '?entity_type=' + type : '')
+        );
+
+        body.innerHTML = rows.length
+            ? rows.map(x => {
+                const isCompany = x.entity_type === 'company';
+
+                const objectName = x.entity_name ||
+                    `${isCompany ? 'Doanh nghiệp' : 'Tin tuyển dụng'} #${x.entity_id}`;
+
+                const detailUrl = isCompany
+                    ? `/admin/companies/${x.entity_id}`
+                    : `/admin/jobs/${x.entity_id}`;
+
+                return `
+                    <tr>
+                        <td>
+                            <a class="job-detail-link"
+                               href="${detailUrl}">
+                                ${esc(objectName)}
+                            </a>
+                        </td>
+
+                        <td>
+                            <a class="job-detail-link"
+                               href="${detailUrl}">
+                                #${esc(x.entity_id)}
+                            </a>
+                        </td>
+
+                        <td>${status(x.action)}</td>
+
+                        <td>${esc(x.reviewer_email || '—')}</td>
+
+                        <td>
+                            <div class="cell-sub" title="${esc(x.note || '')}">
+                                ${esc(x.note || '—')}
+                            </div>
+                        </td>
+
+                        <td>${date(x.created_at)}</td>
+                    </tr>
+                `;
+            }).join('')
+            : '<tr><td colspan="6" class="empty-cell">Chưa có lịch sử kiểm duyệt.</td></tr>';
+
+    } catch (e) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-cell">
+                    ${esc(e.message)}
+                </td>
+            </tr>
+        `;
+    }
+}
   function formatDateTime(value){
     if(!value)return '—';
     const normalized=value.includes('T')?value:value.replace(' ','T')+'Z';
@@ -152,10 +344,96 @@
     if(b.dataset.categoryEdit){try{const x=await api(`/api/admin/categories/${b.dataset.categoryEdit}`);const f=$('#categoryForm');f.dataset.id=x.id;f.elements.name.value=x.name;f.elements.description.value=x.description||'';f.elements.is_active.checked=!!x.is_active;$('#categoryModalTitle').textContent='Cập nhật danh mục';$('#categoryModal').showModal();}catch(e){toast(e.message,true);}}
     if(b.dataset.contentDelete&&confirm('Xóa nội dung này?')){try{await api(`/api/admin/career-contents/${b.dataset.contentDelete}`,{method:'DELETE'});toast('Đã xóa nội dung.');loadContents();}catch(e){toast(e.message,true);}}
     if(b.dataset.contentEdit){try{const x=await api(`/api/admin/career-contents/${b.dataset.contentEdit}`);const f=$('#contentForm');f.dataset.id=x.id;['title','summary','body','category','status'].forEach(k=>f.elements[k].value=x[k]||'');$('#contentModalTitle').textContent='Cập nhật nội dung';$('#contentModal').showModal();}catch(e){toast(e.message,true);}}
+
   });
+  // Xử lý modal xem đầy đủ địa điểm và mô tả tin tuyển dụng
+  document.addEventListener('click', e => {
+    const trigger = e.target.closest('[data-job-text]');
+
+    if (trigger) {
+        const dialog = $('#jobTextModal');
+        if (!dialog) return;
+
+        $('#jobTextTitle').textContent =
+            trigger.dataset.jobTextTitle || 'Thông tin chi tiết';
+
+        $('#jobTextContent').textContent =
+            trigger.dataset.jobText || '';
+
+        dialog.showModal();
+        return;
+    }
+
+    if (e.target.closest('[data-job-text-close]')) {
+        $('#jobTextModal')?.close();
+        return;
+    }
+
+    const dialog = $('#jobTextModal');
+
+    if (dialog && e.target === dialog) {
+        dialog.close();
+    }
+});
   $('#menuToggle')?.addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
-  $('#logoutBtn')?.addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST',body:'{}'});location.href='/admin/login';}catch(e){toast(e.message,true);}});
-  api('/api/auth/me').then(me=>{const email=$('#staffEmail');if(email)email.textContent=me.email;const avatar=$('.avatar');if(avatar)avatar.textContent=(me.email||'S')[0].toUpperCase();const greeting=$('#dashboardGreeting');if(greeting)greeting.textContent=me.email||'Staff';}).catch(()=>{});
+   $('#logoutBtn')?.addEventListener('click',async()=>{
+    try {
+      await api('/api/auth/logout',{method:'POST',body:'{}'});
+      location.href='/login';
+    } catch(e) {
+      toast(e.message,true);
+    }
+    });
+  api('/api/auth/me').then(me => {
+    const email = $('#staffEmail');
+    if (email) email.textContent = me.email;
+
+    const sidebarEmail = $('#sidebarStaffEmail');
+    if (sidebarEmail) sidebarEmail.textContent = me.email;
+
+    const avatar = $('.avatar');
+    if (avatar) avatar.textContent = (me.email || 'S')[0].toUpperCase();
+
+    const greeting = $('#dashboardGreeting');
+    if (greeting) greeting.textContent = me.email || 'Staff';
+}).catch(() => {});
+    if(page === 'profile') {
+    const errorBox = $('#profileError');
+
+    api('/api/auth/me').then(me => {
+      const roleName = me.role === 'admin' ? 'Administrator' : 'Moderator';
+      const initial = (me.email || 'S').charAt(0).toUpperCase();
+
+      $('#profileAvatar').textContent = initial;
+      $('#profileEmail').textContent = me.email || '—';
+      $('#profileRole').textContent = roleName;
+      $('#profileId').textContent = `#${me.id}`;
+      $('#profileEmailDetail').textContent = me.email || '—';
+      $('#profileRoleDetail').textContent = roleName;
+      $('#profileCreatedAt').textContent = formatDateTime(me.created_at);
+      $('#profileStatus').innerHTML = me.is_active
+        ? status('active')
+        : status('inactive');
+
+    }).catch(e => {
+      errorBox.textContent = `Không thể tải thông tin tài khoản: ${e.message}`;
+      errorBox.classList.remove('hidden');
+    });
+  }
+
+  $('#profileLogout')?.addEventListener('click', async () => {
+    if (!confirm('Bạn có chắc chắn muốn đăng xuất?')) return;
+
+    try {
+      await api('/api/auth/logout', {
+        method: 'POST',
+        body: '{}'
+      });
+      location.href = '/login';
+    } catch(e) {
+      toast(e.message, true);
+    }
+  });
   if(page==='dashboard'){
     const dateEl=$('#dashboardDate');
     if(dateEl)dateEl.textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});

@@ -1,5 +1,4 @@
 from functools import wraps
-from urllib.parse import quote
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 business_ui_bp = Blueprint("business_ui", __name__)
@@ -10,8 +9,12 @@ def business_page(view):
     def wrapped(*args, **kwargs):
         if session.get("role") != "business" or "user_id" not in session:
             reason = "role" if "user_id" in session else "auth"
-            target = quote(request.full_path.rstrip("?"), safe="/")
-            return redirect(url_for("business_ui.login", next=target, reason=reason))
+            target = request.full_path.rstrip("?")
+            return redirect(url_for(
+                "login_page",
+                next=target,
+                reason=reason
+            ))
         return view(*args, **kwargs)
     return wrapped
 
@@ -25,7 +28,8 @@ def home():
 def login():
     if session.get("role") == "business":
         return redirect(url_for("business_ui.dashboard"))
-    return render_template("business/login.html")
+
+    return redirect(url_for("login_page", next=request.args.get("next", "")))
 
 
 @business_ui_bp.get("/dashboard")

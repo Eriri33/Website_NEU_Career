@@ -76,31 +76,39 @@ def create_app(test_config=None):
     def dashboard():
         if not session.get("user_id"):
             return redirect(url_for("login_page"))
+
         role = session.get("role")
+
         if role == "business":
             return redirect(url_for("business_ui.dashboard"))
+
         if role in {"admin", "moderator"}:
             return redirect(url_for("admin_pages.dashboard"))
+
         if role != "student":
             return redirect(url_for("login_page"))
+
         return render_template("dashboard.html", role=role)
 
     @app.get("/student/profile")
     def student_profile_page():
         if not session.get("user_id"):
             return redirect(url_for("login_page", next="/student/profile"))
+
         if session.get("role") != "student":
             if session.get("role") == "business":
                 return redirect(url_for("business_ui.dashboard"))
+
             if session.get("role") in {"admin", "moderator"}:
                 return redirect(url_for("admin_pages.dashboard"))
+
             return redirect(url_for("login_page"))
+
         return render_template("student/profile.html")
 
     @app.get("/companies/<int:company_id>")
     def public_company_page(company_id):
         return render_template("company_public.html", company_id=company_id)
-
     @app.get("/api/health")
     def health():
         return jsonify({"status": "ok", "message": "Career Connect API is running"})

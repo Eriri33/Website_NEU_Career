@@ -1,0 +1,62 @@
+
+{% extends "admin/base.html" %}
+
+{% block title %}Chi tiết nội dung hướng nghiệp{% endblock %}
+{% block page_key %}contents{% endblock %}
+{% block breadcrumb %}Chi tiết nội dung{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow">QUẢN LÝ NỘI DUNG</div>
+        <h1>Chi tiết bài viết</h1>
+        <p>Thông tin đầy đủ của nội dung hướng nghiệp.</p>
+    </div>
+
+    <a href="{{ url_for('admin_pages.contents') }}" class="btn btn-light">
+        ← Quay lại
+    </a>
+</div>
+
+<section class="panel content-detail-panel">
+    <div class="content-detail-meta">
+        <span class="count-chip">Bài viết #{{ content.id }}</span>
+        <span class="status {{ content.status }}">
+            {{ 'Đã xuất bản' if content.status == 'published' else 'Bản nháp' }}
+        </span>
+    </div>
+
+    <h1 class="content-detail-title">{{ content.title }}</h1>
+
+    <div class="content-detail-info">
+        <div>
+            <span>Chuyên mục</span>
+            <strong>{{ content.category or 'Chưa phân loại' }}</strong>
+        </div>
+        <div>
+            <span>Ngày tạo</span>
+            <strong>{{ content.created_at or '—' }}</strong>
+        </div>
+        <div>
+            <span>Cập nhật lần cuối</span>
+            <strong>{{ content.updated_at or '—' }}</strong>
+        </div>
+        <div>
+            <span>Mã tác giả</span>
+            <strong>{{ content.author_id or '—' }}</strong>
+        </div>
+    </div>
+
+    <div class="content-detail-section">
+        <h3>Tóm tắt bài viết</h3>
+        <div class="content-detail-text">
+            {{ content.summary or 'Chưa có phần tóm tắt.' }}
+        </div>
+    </div>
+
+    <div class="content-detail-section">
+        <h3>Nội dung bài viết</h3>
+        <div class="content-detail-text content-detail-body">{{ content.body }}</div>
+    </div>
+</section>
+{% endblock %}

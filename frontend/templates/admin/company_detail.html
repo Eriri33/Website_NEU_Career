@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Hồ sơ doanh nghiệp{% endblock %}
+{% block page_key %}company-detail{% endblock %}
+{% block breadcrumb %}Hồ sơ doanh nghiệp{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow">HỒ SƠ DOANH NGHIỆP</div>
+        <h1>{{ company.company_name }}</h1>
+        <p>Mã doanh nghiệp #{{ company.id }}</p>
+    </div>
+    <a class="btn btn-light" href="{{ url_for('admin_pages.jobs') }}">
+        ← Quay lại danh sách tin
+    </a>
+</div>
+
+<section class="panel detail-panel">
+    <div class="detail-section-heading">
+        <h2>Thông tin doanh nghiệp</h2>
+        <span class="detail-status">
+            {{ company.approval_status }}
+        </span>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span>Tên doanh nghiệp</span>
+            <strong>{{ company.company_name }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Website</span>
+            {% if company.website %}
+                <strong>{{ company.website }}</strong>
+            {% else %}
+                <strong>Chưa cập nhật</strong>
+            {% endif %}
+        </div>
+        <div class="detail-item">
+            <span>Ngày đăng ký</span>
+            <strong>{{ company.created_at }}</strong>
+        </div>
+        <div class="detail-item">
+            <span>Trạng thái tài khoản</span>
+            <strong>{{ 'Đang hoạt động' if company.is_active else 'Đã khóa' }}</strong>
+        </div>
+    </div>
+
+    <div class="detail-long-section">
+        <h3>Giới thiệu doanh nghiệp</h3>
+        <div class="detail-long-text">
+            {{ company.description or 'Doanh nghiệp chưa cập nhật phần giới thiệu.' }}
+        </div>
+    </div>
+
+    {% if company.review_note %}
+    <div class="detail-long-section">
+        <h3>Ghi chú kiểm duyệt</h3>
+        <div class="detail-long-text">{{ company.review_note }}</div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
