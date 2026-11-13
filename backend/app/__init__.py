@@ -60,6 +60,10 @@ def create_app(test_config=None):
     def jobs_page():
         return render_template("jobs.html")
 
+    @app.get("/jobs/compare")
+    def compare_jobs_page():
+        return render_template("compare.html")
+
     @app.get("/blog")
     def blog_page():
         return render_template("blog.html")

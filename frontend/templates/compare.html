@@ -1,0 +1,130 @@
+
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>So sánh việc làm — NEU Career</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/jobs" aria-current="page">Tìm việc</a>
+      <a href="/blog">Hướng nghiệp</a>
+    </nav>
+    <a class="btn btn-outline" href="/jobs">← Quay lại tìm việc</a>
+  </div>
+</header>
+
+<main class="wrap compare-page">
+  <div class="compare-heading">
+    <p class="eyebrow blue">CÔNG CỤ HỖ TRỢ LỰA CHỌN</p>
+    <h1>So sánh công việc</h1>
+    <p>Đặt hai cơ hội nghề nghiệp cạnh nhau để tìm ra lựa chọn phù hợp.</p>
+  </div>
+
+  <section class="compare-picker">
+    <label for="secondJob">Chọn công việc thứ hai</label>
+    <div class="compare-picker-row">
+      <select id="secondJob">
+        <option value="">Đang tải danh sách công việc...</option>
+      </select>
+      <button id="compareButton" class="btn btn-primary">So sánh ngay</button>
+    </div>
+    <p id="compareMessage" class="compare-message"></p>
+  </section>
+
+    <section id="compareResult" hidden>
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Tiêu chí</th>
+            <th id="jobOneTitle">Công việc 1</th>
+            <th id="jobTwoTitle">Công việc 2</th>
+          </tr>
+        </thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+
+    <!-- SO SÁNH KHOẢNG CÁCH -->
+    <section class="location-compare">
+      <div class="location-compare-heading">
+        <p class="eyebrow blue">KHOẢNG CÁCH ĐỊA LÝ</p>
+        <h2>Địa điểm nào thuận tiện hơn?</h2>
+        <p>
+          Nhập địa chỉ nơi ở để tính khoảng cách đến hai địa điểm làm việc.
+        </p>
+      </div>
+
+      <div class="location-input-row">
+        <div class="address-autocomplete">
+          <input
+            type="text"
+            id="homeAddress"
+            placeholder="Nhập địa chỉ nơi ở, ví dụ: Đại học Kinh tế Quốc dân"
+            autocomplete="off"
+          />
+
+          <div id="addressSuggestions" class="address-suggestions" hidden></div>
+        </div>
+
+        <button
+          type="button"
+          id="calculateDistanceButton"
+          class="btn btn-primary"
+          disabled
+        >
+          Tính khoảng cách
+        </button>
+      </div>
+
+      <p id="locationMessage" class="compare-message">
+        Địa chỉ chỉ được sử dụng để tính khoảng cách, không lưu vào hồ sơ.
+      </p>
+
+      <div id="distanceResult" class="distance-result" hidden>
+        <div class="distance-card">
+          <span id="distanceJobOneName">Công việc 1</span>
+          <strong id="distanceJobOne">--</strong>
+        </div>
+
+        <div class="distance-card">
+          <span id="distanceJobTwoName">Công việc 2</span>
+          <strong id="distanceJobTwo">--</strong>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="showMapButton"
+        class="btn btn-outline"
+        hidden
+      >
+        Xem bản đồ
+      </button>
+
+      <div id="comparisonMap" hidden></div>
+    </section>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-bottom">
+    <div class="wrap">© 2026 NEU Career Connect. Đại học Kinh tế Quốc dân.</div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+</body>
+</html>
