@@ -4,6 +4,18 @@ Phạm vi: hồ sơ doanh nghiệp, quản lý tin tuyển dụng, tìm/lọc �
 
 ## Chạy thử
 
+Khởi động ứng dụng bằng `run.cmd` tại thư mục gốc. Script tự chuẩn bị môi trường
+Python, khởi tạo database và chạy web server.
+
+Để nạp dữ liệu địa giới và tài khoản demo (tùy chọn), chạy tại thư mục gốc:
+
+```cmd
+.venv\Scripts\python.exe scripts\import_administrative_units.py
+.venv\Scripts\python.exe scripts\seed_business_demo.py
+```
+
+Hoặc khởi tạo và chạy thủ công:
+
 ```powershell
 flask --app run.py init-db
 python scripts/import_administrative_units.py
@@ -31,10 +43,10 @@ Mọi trang có trạng thái đang tải, rỗng, lỗi (có nút Thử lại).
 
 ## File thêm/sửa
 
-- Sửa: `app/__init__.py`, `app/database.py`, `app/companies/routes.py`, `db/schema.sql`
-- Mới (backend): `app/textutil.py`, `app/locations/`, `app/business_ui/`, `scripts/seed_business_demo.py`
-- Mới (frontend): `app/templates/business/*`, `app/static/css/{neu-tokens,business}.css`, `app/static/js/business/*`, `app/static/img/*`
-- Test: `tests/test_business.py` (26 ca)
+- Sửa (backend): `backend/app/__init__.py`, `backend/app/database.py`, `backend/app/companies/routes.py`, `db/schema.sql`
+- Mới (backend): `backend/app/textutil.py`, `backend/app/locations/`, `backend/app/business_ui/`, `scripts/seed_business_demo.py`
+- Mới/sửa (frontend): `frontend/templates/business/*`, `frontend/static/css/{neu-tokens,business}.css`, `frontend/static/js/business/*`, `frontend/static/images/*`
+- Test: `tests/test_business.py` (24 ca)
 
 ## Thay đổi body `POST/PUT /api/company/jobs` (so với contract mục 7.2)
 
@@ -77,24 +89,25 @@ Thêm 3 trường tùy chọn vào bảng `companies` (có migration, DB cũ v�
 | Cột | Ý nghĩa | Ràng buộc |
 |---|---|---|
 | `company_size` | Quy mô nhân sự | rỗng hoặc `1-9`, `10-24`, `25-99`, `100-499`, `500-999`, `1000+` |
-| `industry` | Ngành nghề kinh doanh chính | tối đa 150 ký tự |
+| `industry` / `primary_industry` | Ngành nghề kinh doanh chính; hai field được đồng bộ để tương thích client cũ | tối đa 150 ký tự cho `industry`, 255 ký tự cho `primary_industry` |
+| `business_industries` | Các lĩnh vực kinh doanh, phân cách bằng dấu phẩy | tối đa 1000 ký tự |
 | `address` | Địa điểm công ty, dạng `"<chi tiết>, <phường/xã>, <tỉnh/thành>"` | tối đa 255 ký tự |
 
-`GET /api/company/profile` trả thêm 3 trường này. `PUT /api/company/profile` nhận thêm chúng; **không gửi trường nào thì giữ nguyên giá trị đã lưu** (client cũ chỉ gửi 3 trường cũ vẫn chạy đúng). Gửi chuỗi rỗng để xóa. Lưu hồ sơ vẫn đưa trạng thái về `pending`.
+`GET /api/company/profile` trả các trường trên. `PUT /api/company/profile` nhận chúng; **không gửi trường nào thì giữ nguyên giá trị đã lưu** (client cũ chỉ gửi 3 trường cơ bản vẫn chạy đúng). `industry` và `primary_industry` đồng bộ khi chỉ một trong hai được gửi. Gửi chuỗi rỗng để xóa. Lưu hồ sơ vẫn đưa trạng thái về `pending`.
 
-Giao diện `/business/profile` có thêm ô chọn quy mô, ngành nghề (gợi ý + nhập tự do), địa chỉ chọn tỉnh, phường/xã từ bảng dùng chung, thẻ "Thông tin chung" và nút "Mở trong Google Maps" (liên kết tìm kiếm theo địa chỉ, không cần API key).
+Giao diện `/business/profile` có ô chọn quy mô, ngành nghề (gợi ý + nhập tự do), lĩnh vực kinh doanh, địa chỉ chọn tỉnh/phường từ bảng dùng chung, bản đồ và liên kết chia sẻ hồ sơ công khai. Bản đồ dùng Google Maps, không cần API key.
 
-Chưa làm: nhiều ngành nghề phụ ("+53 lĩnh vực khác" như TopCV), bản đồ nhúng, trang công ty công khai và liên kết chia sẻ. Trang công khai thuộc phần TV1; khi cần hiển thị 3 trường này ở trang tin, TV1 chỉ cần thêm vào câu SELECT công ty.
+Chưa làm: logo công ty và bộ chọn nhiều ngành nghề phụ có cấu trúc riêng. Trang công khai chỉ hiện hồ sơ đã được duyệt và tài khoản còn hoạt động.
 
 ## Thay đổi chạm vào phần của TV3/TV1
 
-1. `db/schema.sql` + `migrate_db()` trong `app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14) và `companies.company_size`, `companies.industry`, `companies.address`. Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
-2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`app/textutil.py`).
+1. `db/schema.sql` + `migrate_db()` trong `backend/app/database.py`: thêm `jobs.saturday_policy`, `jobs.salary_text` (theo contract mục 14) và các trường hồ sơ công ty. Migration idempotent, chạy trong `init-db` và khi khởi động nếu DB đã tồn tại.
+2. `get_db()` đăng ký hàm SQL `fold()` để tìm kiếm không dấu. TV1/TV3 có thể dùng lại (`backend/app/textutil.py`).
 3. Blueprint mới `/api/locations/*` đọc bảng `provinces`/`wards` chung (không đổi cấu trúc bảng).
 4. TV1 cần thêm `salary_text`, `saturday_policy` vào SELECT của `/api/jobs` để hiển thị/lọc; TV3 thêm vào danh sách admin.
-5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `app/business_ui/routes.py`.
+5. Trang `/business/login` là bản tối thiểu để module chạy độc lập; TV3 có thể thay bằng trang đăng nhập chung và đổi redirect trong `backend/app/business_ui/routes.py`.
 
-## Chưa làm / giới hạn 
+## Chưa làm / giới hạn
 
 - **Doanh nghiệp chưa xem được CV của ứng viên.** Contract hiện chỉ cho sinh viên tải CV của mình và bảng `applications` không gắn CV. Muốn có cần thêm `applications.cv_id` và endpoint tải cho business — cần nhóm thống nhất contract.
 - Hồ sơ công ty chưa có logo và chưa có nhiều ngành nghề phụ.

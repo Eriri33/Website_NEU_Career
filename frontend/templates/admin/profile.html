@@ -1,0 +1,85 @@
+
+{% extends "admin/base.html" %}
+
+{% block title %}Thông tin tài khoản{% endblock %}
+{% block page_key %}profile{% endblock %}
+{% block breadcrumb %}Thông tin tài khoản{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">TÀI KHOẢN CÁ NHÂN</div>
+    <h1>Thông tin tài khoản</h1>
+    <p>Xem thông tin tài khoản quản trị đang đăng nhập.</p>
+  </div>
+  <a href="{{ url_for('admin_pages.dashboard') }}" class="btn btn-light">
+    ← Quay lại Dashboard
+  </a>
+</div>
+
+<div class="profile-layout">
+  <section class="panel profile-main">
+    <div class="profile-cover"></div>
+    <div class="profile-identity">
+      <div class="profile-avatar" id="profileAvatar">S</div>
+      <div>
+        <h2 id="profileEmail">Đang tải...</h2>
+        <span class="profile-role" id="profileRole">Staff</span>
+      </div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <div class="panel-heading profile-section-heading">
+      <div>
+        <h2>Thông tin cá nhân</h2>
+        <p>Thông tin được lấy từ tài khoản đang đăng nhập.</p>
+      </div>
+    </div>
+
+    <div class="profile-info-grid">
+      <div class="profile-info-item">
+        <span>Mã tài khoản</span>
+        <strong id="profileId">—</strong>
+      </div>
+      <div class="profile-info-item">
+        <span>Địa chỉ email</span>
+        <strong id="profileEmailDetail">—</strong>
+      </div>
+      <div class="profile-info-item">
+        <span>Vai trò</span>
+        <strong id="profileRoleDetail">—</strong>
+      </div>
+      <div class="profile-info-item">
+        <span>Ngày tạo tài khoản</span>
+        <strong id="profileCreatedAt">—</strong>
+      </div>
+      <div class="profile-info-item">
+        <span>Trạng thái tài khoản</span>
+        <strong id="profileStatus">—</strong>
+      </div>
+    </div>
+
+    <div class="profile-error hidden" id="profileError"></div>
+  </section>
+
+  <aside class="panel profile-side">
+    <div class="panel-heading">
+      <div>
+        <h2>Bảo mật tài khoản</h2>
+        <p>Các thao tác dành cho phiên đăng nhập hiện tại.</p>
+      </div>
+    </div>
+    <div class="profile-side-content">
+      <div class="profile-security-icon">✓</div>
+      <h3>Tài khoản quản trị</h3>
+      <p>
+        Tài khoản này có quyền truy cập khu vực quản trị theo vai trò được cấp.
+      </p>
+      <button type="button" class="btn btn-light profile-logout" id="profileLogout">
+        ↪ Đăng xuất
+      </button>
+    </div>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Quản trị{% endblock %} | NEU Career</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body data-page="{% block page_key %}{% endblock %}" data-role="{{ session.get('role', '') }}">
+<div class="admin-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('admin_pages.dashboard') }}">
+    <img
+        class="brand-mark"
+        src="{{ url_for('static', filename='images/neu/Bieu-tuong-1-1-scaled.webp') }}"
+        alt="Logo Đại học Kinh tế Quốc dân"
+    >
+    <span>
+        <b>NEU CAREER</b>
+        <small>ADMINISTRATION</small>
+    </span>
+    </a>
+
+      <div class="side-caption">TỔNG QUAN</div>
+      <nav class="side-nav">
+        <a href="{{ url_for('admin_pages.dashboard') }}" class="{% if request.endpoint == 'admin_pages.dashboard' %}active{% endif %}">
+          <span class="nav-icon">▦</span> Dashboard
+        </a>
+      </nav>
+
+      <div class="side-caption">KIỂM DUYỆT</div>
+      <nav class="side-nav">
+        <a href="{{ url_for('admin_pages.companies') }}" class="{% if request.endpoint == 'admin_pages.companies' %}active{% endif %}">
+          <span class="nav-icon">▣</span> Doanh nghiệp
+        </a>
+        <a href="{{ url_for('admin_pages.jobs') }}" class="{% if request.endpoint == 'admin_pages.jobs' %}active{% endif %}">
+          <span class="nav-icon">▤</span> Tin tuyển dụng
+        </a>
+        <a href="{{ url_for('admin_pages.history') }}" class="{% if request.endpoint == 'admin_pages.history' %}active{% endif %}">
+          <span class="nav-icon">◷</span> Lịch sử kiểm duyệt
+        </a>
+      </nav>
+
+      <div class="side-caption">QUẢN LÝ NỘI DUNG</div>
+      <nav class="side-nav">
+        <a href="{{ url_for('admin_pages.categories') }}" class="{% if request.endpoint == 'admin_pages.categories' %}active{% endif %}">
+          <span class="nav-icon">▧</span> Danh mục ngành nghề
+        </a>
+        <a href="{{ url_for('admin_pages.contents') }}" class="{% if request.endpoint == 'admin_pages.contents' %}active{% endif %}">
+          <span class="nav-icon">▤</span> Nội dung hướng nghiệp
+        </a>
+        {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('admin_pages.users') }}" class="{% if request.endpoint == 'admin_pages.users' %}active{% endif %}">
+          <span class="nav-icon">♙</span> Tài khoản
+        </a>
+        {% endif %}
+      </nav>
+
+    <div class="sidebar-bottom">
+    <div class="staff-account">
+        <b>{{ 'Administrator' if session.get('role') == 'admin' else 'Moderator' }}</b>
+        <small id="sidebarStaffEmail">Đang tải...</small>
+
+        <button class="sidebar-logout" id="logoutBtn" type="button">
+            <span>⇥</span>
+            Đăng xuất
+        </button>
+    </div>
+</div>
+  </aside>
+  <main class="main-area">
+<header class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Mở menu">☰</button>
+
+  <div class="breadcrumb">
+    Workspace <span>/</span>
+    <b>{% block breadcrumb %}Dashboard{% endblock %}</b>
+  </div>
+
+  <div class="top-actions">
+    <a class="user-chip"
+       href="{{ url_for('admin_pages.profile') }}"
+       title="Xem thông tin tài khoản"
+       aria-label="Xem thông tin tài khoản"
+       style="text-decoration: none; color: inherit;">
+      <div class="avatar">A</div>
+      <div>
+        <b id="staffEmail">Đang tải...</b>
+        <small>{{ 'Administrator' if session.get('role') == 'admin' else 'Moderator' }}</small>
+      </div>
+    </a>
+
+  </div>
+</header>
+
+    <section class="page-content">{% block content %}{% endblock %}</section>
+    <footer class="footer"><span>© 2026 NEU Career</span><span>Hệ thống quản trị nền tảng</span></footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body></html>

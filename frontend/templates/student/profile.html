@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hồ sơ sinh viên — NEU Career</title>
+<meta name="description" content="Cập nhật hồ sơ, quản lý CV và theo dõi các đơn ứng tuyển trên NEU Career.">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="student-profile-page">
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/jobs">Tìm việc</a>
+      <a href="/blog">Hướng nghiệp</a>
+    </nav>
+    <div class="nav-actions">
+      <span id="sessionLabel"></span>
+      <button class="btn btn-outline" type="button" id="logoutButton">Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap profile-main">
+  <section class="profile-hero">
+    <div>
+      <p class="eyebrow blue">KHU VỰC SINH VIÊN</p>
+      <h1>Hồ sơ & hành trình nghề nghiệp</h1>
+      <p class="dashboard-lead">Quản lý thông tin, CV và theo dõi các cơ hội bạn đã ứng tuyển.</p>
+    </div>
+    <a class="btn btn-primary" href="/jobs">Khám phá việc làm <span aria-hidden="true">→</span></a>
+  </section>
+
+  <section class="profile-overview" aria-label="Tổng quan hồ sơ">
+    <article class="panel completion-card">
+      <div class="completion-heading">
+        <div><p class="eyebrow blue">HỒ SƠ CỦA BẠN</p><h2 id="profileWelcome">Đang tải hồ sơ…</h2></div>
+        <strong id="completionValue">0%</strong>
+      </div>
+      <div class="completion-track" role="progressbar" aria-label="Mức độ hoàn thiện hồ sơ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span id="completionBar"></span>
+      </div>
+      <p class="muted" id="completionHint">Hoàn thiện thông tin để nhà tuyển dụng hiểu bạn hơn.</p>
+    </article>
+    <article class="panel profile-stat"><span class="profile-stat-icon" aria-hidden="true">📨</span><strong id="applicationCount">—</strong><span>Đơn ứng tuyển</span></article>
+    <article class="panel profile-stat"><span class="profile-stat-icon" aria-hidden="true">⏳</span><strong id="activeApplicationCount">—</strong><span>Đang xử lý</span></article>
+  </section>
+
+  <div class="profile-layout">
+    <div class="profile-column">
+      <form id="profileForm" class="panel">
+        <div class="profile-section-heading">
+          <div><p class="eyebrow blue">THÔNG TIN CÁ NHÂN</p><h2>Hồ sơ của tôi</h2></div>
+          <span class="profile-section-icon" aria-hidden="true">👤</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="profileFullName">Họ và tên</label>
+            <input id="profileFullName" name="full_name" autocomplete="name" placeholder="Nguyễn Văn A">
+          </div>
+          <div class="form-group">
+            <label for="profileMajor">Ngành học</label>
+            <input id="profileMajor" name="major" placeholder="Quản trị kinh doanh">
+          </div>
+          <div class="form-group">
+            <label for="profilePhone">Số điện thoại</label>
+            <input id="profilePhone" name="phone" type="tel" autocomplete="tel" placeholder="0900 000 000">
+          </div>
+          <div class="form-group">
+            <label for="profileSkills">Kỹ năng</label>
+            <input id="profileSkills" name="skills" placeholder="Excel, Python, SQL">
+          </div>
+          <div class="form-group full-width">
+            <label for="profileBio">Giới thiệu ngắn</label>
+            <textarea id="profileBio" name="bio" placeholder="Chia sẻ mục tiêu nghề nghiệp hoặc kinh nghiệm của bạn…" rows="4"></textarea>
+          </div>
+        </div>
+        <div class="profile-form-footer">
+          <p class="form-message" id="profileMessage" role="status" aria-live="polite"></p>
+          <button class="btn btn-primary" type="submit">Lưu hồ sơ</button>
+        </div>
+      </form>
+
+      <section class="panel recommendations-panel">
+        <div class="profile-section-heading">
+          <div><p class="eyebrow blue">DÀNH CHO BẠN</p><h2>Việc làm gợi ý</h2></div>
+          <span class="profile-section-icon" aria-hidden="true">✦</span>
+        </div>
+        <p class="muted">Gợi ý dựa trên ngành học và kỹ năng trong hồ sơ của bạn.</p>
+        <div id="recommendationList" class="recommendation-list" aria-live="polite">
+          <p class="muted">Đang tải gợi ý…</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="profile-column">
+      <section class="panel">
+        <div class="profile-section-heading">
+          <div><p class="eyebrow blue">TÀI LIỆU ỨNG TUYỂN</p><h2>CV của tôi</h2></div>
+          <span class="profile-section-icon" aria-hidden="true">📄</span>
+        </div>
+        <form id="cvForm" class="cv-upload">
+          <input type="file" name="file" accept=".pdf,.doc,.docx" required id="cvFileInput">
+          <label for="cvFileInput" class="file-label" id="cvFileLabel">Chọn file CV (.pdf, .doc, .docx)</label>
+          <button class="btn btn-soft" type="submit">Tải CV lên</button>
+        </form>
+        <p class="muted profile-note">Định dạng PDF, DOC hoặc DOCX. Bạn có thể lưu nhiều phiên bản CV.</p>
+        <div id="cvList" class="cv-list" aria-live="polite"><p class="muted">Đang tải CV…</p></div>
+      </section>
+
+      <section class="panel application-panel">
+        <div class="profile-section-heading">
+          <div><p class="eyebrow blue">THEO DÕI TIẾN ĐỘ</p><h2>Đơn ứng tuyển</h2></div>
+          <span class="profile-section-icon" aria-hidden="true">📋</span>
+        </div>
+        <div class="application-tools">
+          <input id="applicationQuery" type="search" placeholder="Tìm vị trí hoặc doanh nghiệp…" aria-label="Tìm vị trí hoặc doanh nghiệp">
+          <select id="applicationStatus" aria-label="Lọc theo trạng thái">
+            <option value="">Tất cả trạng thái</option>
+            <option value="submitted">Đã gửi</option>
+            <option value="reviewing">Đang xem xét</option>
+            <option value="accepted">Đã nhận</option>
+            <option value="rejected">Từ chối</option>
+            <option value="withdrawn">Đã rút</option>
+          </select>
+        </div>
+        <div id="applicationList" class="application-list" aria-live="polite"><p class="muted">Đang tải đơn ứng tuyển…</p></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<dialog id="applicationDialog" class="application-dialog">
+  <form id="applicationEditForm" method="dialog">
+    <button class="dialog-close" type="button" id="closeApplicationDialog" aria-label="Đóng">×</button>
+    <p class="eyebrow blue">CHI TIẾT ỨNG TUYỂN</p>
+    <h2 id="dialogJobTitle"></h2>
+    <p id="dialogCompany" class="muted"></p>
+    <label for="dialogCoverLetter">Lời nhắn của bạn</label>
+    <textarea id="dialogCoverLetter" rows="5"></textarea>
+    <p class="muted" id="dialogStatus"></p>
+    <div class="dialog-actions">
+      <button class="btn btn-soft" type="button" id="saveApplicationMessage">Lưu thay đổi</button>
+      <button class="btn btn-danger" type="button" id="withdrawApplication">Rút đơn</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/student-profile.js') }}"></script>
+</body>
+</html>

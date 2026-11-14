@@ -455,6 +455,51 @@ Chỉ được sửa khi đơn ở trạng thái `submitted`. `DELETE` chỉ rú
 
 ## 9. Admin và kiểm duyệt — `/api/admin`
 
+### 9.0. Dữ liệu tổng quan Dashboard
+
+`GET /api/admin/dashboard/summary` cho cả `admin` và `moderator` sử dụng. Endpoint trả số liệu tổng hợp lấy trực tiếp từ SQLite, không trả danh sách tài khoản/đơn cá nhân.
+
+Response `200` có cấu trúc:
+
+```json
+{
+  "role": "admin",
+  "stats": {
+    "active_users": 12,
+    "active_students": 8,
+    "active_business_accounts": 3,
+    "companies_total": 3,
+    "companies_approved": 2,
+    "companies_pending": 1,
+    "jobs_total": 7,
+    "jobs_approved": 4,
+    "jobs_pending": 1,
+    "applications_total": 9,
+    "applications_pending": 5,
+    "categories_total": 6,
+    "categories_active": 5,
+    "contents_total": 4,
+    "contents_published": 3,
+    "contents_draft": 1,
+    "reviews_today": 2
+  },
+  "recent_reviews": [
+    {
+      "id": 8,
+      "entity_type": "job",
+      "entity_id": 12,
+      "action": "approved",
+      "note": "Nội dung hợp lệ.",
+      "created_at": "2026-10-31 09:30:00",
+      "reviewer_email": "moderator@example.com",
+      "entity_name": "Python Intern"
+    }
+  ]
+}
+```
+
+Các số liệu JSON trên chỉ minh họa cấu trúc, không phải dữ liệu cố định. `jobs_approved` chỉ đếm tin đang được công khai: tin đã duyệt, doanh nghiệp đã duyệt, tài khoản doanh nghiệp đang hoạt động và tin chưa hết hạn. `recent_reviews` trả tối đa 8 quyết định kiểm duyệt mới nhất. Các vai trò không phải Admin vẫn được xem số liệu tổng hợp, nhưng giao diện Moderator không hiển thị mục quản lý tài khoản.
+
 ### 9.1. Kiểm duyệt doanh nghiệp và việc làm
 
 Các endpoint này cho `admin` và `moderator` sử dụng.
@@ -674,7 +719,7 @@ Các filter cơ bản `q`, `major`, `location`, `job_type`, `category_id` của 
 ## 17. Phạm vi bảo mật
 
 - Đây là contract cho MVP/demo, không phải production guarantee.
-- Trước khi deploy thực tế cần secret key an toàn, HTTPS, CSRF protection và biện pháp bảo vệ file upload.
+- Trước khi deploy thực tế cần đặt `SECRET_KEY` ổn định, ngẫu nhiên và dùng chung giữa các worker, bật HTTPS, CSRF protection và bảo vệ file upload. Nếu không đặt biến này, ứng dụng tạo khóa tạm thời theo tiến trình; phiên đăng nhập sẽ hết hiệu lực khi khởi động lại ứng dụng.
 - Backend phải lấy user ID/role từ session, không tin role gửi từ frontend.
 - Các thao tác đóng tin/rút đơn/vô hiệu hóa tài khoản giữ lịch sử; không diễn giải `DELETE` là luôn xóa vật lý.
 - Các search endpoint quản trị phải áp dụng role guard **trước** khi truy vấn; business search phải giới hạn ownership **trước** khi filter.

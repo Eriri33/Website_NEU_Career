@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEU Career — Cùng bạn phát triển sự nghiệp</title>
+<meta name="description" content="Khám phá việc làm, cơ hội thực tập và kiến thức hướng nghiệp dành cho sinh viên Đại học Kinh tế Quốc dân.">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav aria-label="Điều hướng chính">
+      <a href="/" aria-current="page">Trang chủ</a>
+      <a href="/jobs">Tìm việc</a>
+      <a href="/blog">Hướng nghiệp</a>
+    </nav>
+    <div class="nav-actions">
+      <span id="sessionLabel"></span>
+      <a class="btn btn-outline" id="authButton" href="{{ url_for('login_page') }}">Đăng nhập</a>
+      <a class="btn btn-primary employer-cta" href="/business/login">Dành cho nhà tuyển dụng <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero home-hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="wrap hero-content">
+      <div class="hero-intro">
+        <p class="eyebrow blue">NEU CAREER · HÀNH TRANG SỰ NGHIỆP</p>
+        <h1>Mở lối tương lai,<br><em>bắt đầu từ hôm nay.</em></h1>
+        <p class="hero-copy">Nền tảng kết nối sinh viên NEU với nhà tuyển dụng, cơ hội thực tập và những kiến thức thiết thực để bạn tự tin bước vào thế giới nghề nghiệp.</p>
+        <div class="home-actions">
+          <a class="btn btn-primary hero-cta" href="/jobs">Khám phá việc làm <span aria-hidden="true">→</span></a>
+          <a class="home-secondary-link" href="/blog">Đọc cẩm nang nghề nghiệp</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-photo">
+          <img src="{{ url_for('static', filename='assets/neu_2.jpg') }}" alt="Không gian tại Đại học Kinh tế Quốc dân">
+        </div>
+        <div class="hero-note">
+          <span class="hero-note-icon" aria-hidden="true">✦</span>
+          <span><b>Khởi đầu sự nghiệp</b><small>Cơ hội tốt bắt đầu từ đây</small></span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="wrap">
+        <div class="stat-row">
+          <div class="stat-item"><span class="stat-num" id="statJobs">0</span><span class="stat-label">Việc làm đang tuyển</span></div>
+          <div class="stat-item"><span class="stat-num" id="statCategories">0</span><span class="stat-label">Ngành nghề đa dạng</span></div>
+          <div class="stat-item"><span class="stat-num" id="statCompanies">0</span><span class="stat-label">Doanh nghiệp uy tín</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature-strip wrap" aria-label="Lợi ích của NEU Career">
+    <a class="feature-card" href="/jobs">
+      <span class="feature-icon" aria-hidden="true">↗</span>
+      <span><b>Cơ hội phù hợp</b><small>Việc làm dành cho sinh viên và cựu sinh viên</small></span>
+    </a>
+    <a class="feature-card feature-card-primary" href="/jobs">
+      <span class="feature-icon" aria-hidden="true">⌕</span>
+      <span><b>Tìm kiếm dễ dàng</b><small>Lọc theo ngành nghề, kỹ năng và địa điểm</small></span>
+    </a>
+    <a class="feature-card" href="/blog">
+      <span class="feature-icon" aria-hidden="true">✳</span>
+      <span><b>Đồng hành phát triển</b><small>Kiến thức hữu ích cho hành trình nghề nghiệp</small></span>
+    </a>
+  </section>
+
+  <section class="about-section">
+    <div class="wrap about-grid">
+      <div class="about-visual">
+        <img src="{{ url_for('static', filename='assets/neu_3.jpg') }}" alt="Không gian học tập tại Đại học Kinh tế Quốc dân" loading="lazy">
+        <span class="about-accent" aria-hidden="true"></span>
+      </div>
+      <div class="about-copy">
+        <p class="eyebrow blue">KẾT NỐI NHÀ TRƯỜNG VÀ DOANH NGHIỆP</p>
+        <h2>Cùng bạn xây dựng<br>con đường sự nghiệp.</h2>
+        <p>NEU Career là cầu nối để sinh viên tiếp cận những cơ hội nghề nghiệp đáng tin cậy. Từ lúc khám phá ngành nghề, chuẩn bị hồ sơ đến khi ứng tuyển, bạn có thể chủ động từng bước trên hành trình của mình.</p>
+        <a href="/jobs" class="btn btn-primary">Tìm cơ hội của bạn <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-benefits">
+    <div class="wrap">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow blue">BẠN ĐANG Ở ĐÂU TRÊN HÀNH TRÌNH?</p>
+          <h2>Một điểm bắt đầu, nhiều cơ hội phát triển</h2>
+        </div>
+      </div>
+      <div class="home-benefit-grid">
+        <article class="home-benefit">
+          <span>01</span><h3>Khám phá cơ hội</h3>
+          <p>Tìm việc làm và thực tập theo lĩnh vực, địa điểm, kỹ năng và hình thức làm việc phù hợp.</p>
+        </article>
+        <article class="home-benefit">
+          <span>02</span><h3>Chuẩn bị hồ sơ</h3>
+          <p>Hoàn thiện hồ sơ sinh viên, lưu CV và theo dõi các cơ hội bạn đã ứng tuyển.</p>
+        </article>
+        <article class="home-benefit">
+          <span>03</span><h3>Phát triển bản thân</h3>
+          <p>Đọc cẩm nang về CV, phỏng vấn và những kỹ năng giúp bạn tự tin hơn khi đi làm.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap home-latest">
+    <div class="section-heading">
+      <div><p class="eyebrow blue">CƠ HỘI MỚI</p><h2>Việc làm dành cho bạn</h2></div>
+      <a href="/jobs" class="text-link">Tất cả việc làm →</a>
+    </div>
+    <div id="homeJobs" class="home-job-grid"><div class="loading">Đang tải cơ hội…</div></div>
+  </section>
+
+  <section class="home-blog-section">
+    <div class="wrap">
+      <div class="section-heading">
+        <div><p class="eyebrow blue">GÓC HƯỚNG NGHIỆP</p><h2>Kiến thức giúp bạn tiến xa</h2></div>
+        <a href="/blog" class="text-link">Đọc tất cả bài viết →</a>
+      </div>
+      <div id="homeBlogs" class="career-grid"><div class="loading">Đang tải bài viết…</div></div>
+    </div>
+  </section>
+
+  <section class="home-cta">
+    <div class="wrap home-cta-content">
+      <div><p class="eyebrow">BƯỚC TIẾP THEO BẮT ĐẦU TỪ BẠN</p><h2>Sẵn sàng tìm cơ hội phù hợp?</h2>
+      <p>Tạo hồ sơ, khám phá việc làm và chủ động kết nối với doanh nghiệp ngay hôm nay.</p></div>
+      <a class="btn btn-primary" href="/jobs">Bắt đầu tìm việc <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-content">
+    <div class="footer-brand">
+      <a class="brand" href="/">NEU<span>Career</span></a>
+      <p>Kết nối sinh viên Đại học Kinh tế Quốc dân với cơ hội nghề nghiệp chất lượng.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Khám phá</h4>
+      <a href="/">Trang chủ</a><a href="/jobs">Tìm việc</a><a href="/blog">Hướng nghiệp</a>
+    </div>
+    <div class="footer-links">
+      <h4>Tài khoản &amp; cổng nghiệp vụ</h4>
+      <a href="/login">Đăng nhập sinh viên</a>
+      <a href="/register">Tạo tài khoản sinh viên</a>
+      <a href="/business/login">Cổng nhà tuyển dụng</a>
+      <a href="/admin/login">Cổng quản trị viên</a>
+    </div>
+  </div>
+  <div class="footer-bottom"><div class="wrap">© 2026 NEU Career Connect. Đại học Kinh tế Quốc dân.</div></div>
+</footer>
+<script src="{{ url_for('static', filename='js/public.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+</body>
+</html>

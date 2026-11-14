@@ -1,6 +1,0 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fb; color: #243047; }
-.container { max-width: 850px; margin: 8vh auto; padding: 32px; background: #fff; border-radius: 14px; box-shadow: 0 8px 28px rgba(20, 35, 70, .08); }
-h1 { color: #315da8; }
-.status { display: inline-block; padding: 8px 12px; background: #e8f6ee; color: #216e43; border-radius: 8px; }
-code { background: #eef1f7; padding: 3px 6px; border-radius: 4px; }

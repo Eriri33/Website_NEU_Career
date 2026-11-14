@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tìm việc làm — NEU Career</title>
+<meta name="description" content="Tìm việc làm và cơ hội thực tập phù hợp với ngành học, kỹ năng và mục tiêu nghề nghiệp của bạn.">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<!-- ==================== HEADER ==================== -->
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="/">NEU<span>Career</span></a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/jobs" aria-current="page">Tìm việc</a>
+      <a href="/blog">Hướng nghiệp</a>
+    </nav>
+    <div class="nav-actions">
+      <span id="sessionLabel"></span>
+      <a class="btn btn-outline" id="authButton" href="{{ url_for('login_page') }}">Đăng nhập</a>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== HERO + SEARCH BAR ==================== -->
+<main>
+<section class="hero jobs-hero" id="hero-section">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-content">
+    <div class="hero-intro">
+      <p class="eyebrow blue">CƠ HỘI NGHỀ NGHIỆP · DÀNH RIÊNG CHO NEU</p>
+      <h1>Tìm việc phù hợp<br>với <em>bạn.</em></h1>
+      <p class="hero-copy">Khám phá việc làm và kỳ thực tập tiếp theo từ các doanh nghiệp uy tín.</p>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-photo">
+        <img src="{{ url_for('static', filename='assets/neu_2.jpg') }}" alt="Không gian tại Đại học Kinh tế Quốc dân">
+      </div>
+      <div class="hero-note">
+        <span class="hero-note-icon" aria-hidden="true">✦</span>
+        <span><b>Khởi đầu sự nghiệp</b><small>Cơ hội tốt bắt đầu từ đây</small></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap hero-search-wrap">
+    <div class="search-box" id="searchBox">
+      <form class="searchbar" id="searchForm" autocomplete="off">
+        <select id="heroCategory" aria-label="Ngành nghề">
+          <option value="">Tất cả ngành nghề</option>
+        </select>
+        <div class="search-input-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="query" placeholder="Vị trí tuyển dụng, kỹ năng..." autocomplete="off" aria-label="Vị trí tuyển dụng, kỹ năng">
+        </div>
+        <div class="search-input-wrap search-input-location">
+          <span class="search-icon" aria-hidden="true">⌖</span>
+          <input id="location" placeholder="Tỉnh/thành phố" list="locationOptions" autocomplete="off" aria-label="Tỉnh/thành phố">
+          <datalist id="locationOptions"></datalist>
+        </div>
+        <button class="clear-search" type="button" id="clearSearch" title="Xóa ô tìm kiếm" aria-label="Xóa ô tìm kiếm">×</button>
+        <button class="btn btn-primary search-btn" type="submit">Tìm kiếm <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="suggestions" id="suggestions" hidden>
+        <div>
+          <h4>Từ khóa phổ biến</h4>
+          <div id="keywordSuggestions" class="keyword-list"></div>
+        </div>
+        <div>
+          <h4>Việc làm có thể bạn quan tâm</h4>
+          <div id="jobSuggestions" class="mini-jobs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="wrap">
+      <div class="stat-row" id="heroStats">
+        <div class="stat-item"><span class="stat-num" id="statJobs">0</span><span class="stat-label">Việc làm đang tuyển</span></div>
+        <div class="stat-item"><span class="stat-num" id="statCategories">0</span><span class="stat-label">Ngành nghề đa dạng</span></div>
+        <div class="stat-item"><span class="stat-num" id="statCompanies">0</span><span class="stat-label">Doanh nghiệp uy tín</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== JOB SEARCH + RESULTS ==================== -->
+<section class="wrap discovery" id="jobs">
+  <aside class="filters">
+    <div class="filter-head">
+      <h3>🔎 Bộ lọc tìm kiếm</h3>
+      <button id="resetFilters" class="text-button">Xóa lọc</button>
+    </div>
+
+    <label class="field-label">Danh mục nghề</label>
+    <div id="categoryFilters" class="check-list"></div>
+
+    <label class="field-label">Loại công việc</label>
+    <select id="jobType">
+      <option value="">Tất cả loại việc</option>
+      <option value="internship">Thực tập</option>
+      <option value="full_time">Toàn thời gian</option>
+      <option value="part_time">Bán thời gian</option>
+      <option value="contract">Hợp đồng</option>
+    </select>
+
+    <label class="field-label">Ngành học phù hợp</label>
+    <input id="major" placeholder="VD: Marketing, CNTT">
+
+    <label class="field-label">Kỹ năng</label>
+    <input id="skills" placeholder="VD: Excel, Python">
+
+    <label class="field-label">Lịch làm việc thứ Bảy</label>
+    <select id="saturday">
+      <option value="">Không lọc</option>
+      <option value="off">Nghỉ thứ Bảy</option>
+      <option value="working">Có làm thứ Bảy</option>
+      <option value="negotiable">Thỏa thuận</option>
+    </select>
+
+    <label class="field-label">Tin đăng trong</label>
+    <select id="posted">
+      <option value="">Mọi thời gian</option>
+      <option value="1">24 giờ qua</option>
+      <option value="3">3 ngày qua</option>
+      <option value="7">7 ngày qua</option>
+      <option value="30">30 ngày qua</option>
+    </select>
+
+    <div class="filter-actions">
+      <button id="saveFilters" class="btn btn-soft full">♡ Lưu bộ lọc</button>
+      <button id="loadFilters" class="btn btn-outline full">📂 Tải bộ lọc đã lưu</button>
+    </div>
+  </aside>
+
+  <div class="results">
+    <div class="results-heading">
+      <div>
+        <p class="eyebrow blue">CƠ HỘI DÀNH CHO BẠN</p>
+        <h2 id="resultTitle">Việc làm mới nhất</h2>
+      </div>
+      <select id="sort">
+        <option value="latest">Mới nhất</option>
+        <option value="deadline">Hạn gần nhất</option>
+      </select>
+    </div>
+    <div id="resultState"></div>
+    <div id="jobResults" class="job-list"></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="wrap footer-content">
+    <div class="footer-brand">
+      <a class="brand" href="/">NEU<span>Career</span></a>
+      <p>Kết nối sinh viên Đại học Kinh tế Quốc dân với cơ hội nghề nghiệp chất lượng.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Liên kết nhanh</h4>
+      <a href="/">Trang chủ</a>
+      <a href="/jobs">Tìm việc</a>
+      <a href="/blog">Hướng nghiệp</a>
+    </div>
+    <div class="footer-links">
+      <h4>Hỗ trợ</h4>
+      <a href="#">Hướng dẫn sử dụng</a>
+      <a href="#">Liên hệ</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="wrap">© 2026 NEU Career Connect. Đại học Kinh tế Quốc dân.</div>
+  </div>
+</footer>
+
+<!-- Toast notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Modal -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="closeModal">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/public.js') }}"></script>
+</body>
+</html>

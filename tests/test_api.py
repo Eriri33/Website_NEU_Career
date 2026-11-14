@@ -42,6 +42,78 @@ class CareerConnectAPITestCase(unittest.TestCase):
         response = self.client.get("/api/health")
         self.assertEqual(response.status_code, 200)
 
+    def test_home_does_not_log_in_anonymous_visitor(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me").status_code, 401)
+        self.assertEqual(self.client.get("/dashboard").status_code, 302)
+
+    def test_account_dashboard_routes_to_role_specific_portals(self):
+        self.assertEqual(self.register("portal-business@example.com", "business").status_code, 201)
+        self.login("portal-business@example.com")
+        business_dashboard = self.client.get("/dashboard")
+        self.assertEqual(business_dashboard.status_code, 302)
+        self.assertTrue(business_dashboard.headers["Location"].endswith("/business/dashboard"))
+        self.assertEqual(self.client.get("/business/jobs/new").status_code, 200)
+        self.assertEqual(self.client.get("/admin/").status_code, 302)
+
+        self.client.post("/api/auth/logout")
+        self.login("admin@example.com", "admin123")
+        admin_dashboard = self.client.get("/dashboard")
+        self.assertEqual(admin_dashboard.status_code, 302)
+        self.assertTrue(admin_dashboard.headers["Location"].endswith("/admin/"))
+        self.assertEqual(self.client.get("/admin/").status_code, 200)
+        self.assertEqual(self.client.get("/admin/users").status_code, 200)
+
+    def test_student_profile_page_is_separate_and_student_only(self):
+        anonymous = self.client.get("/student/profile")
+        self.assertEqual(anonymous.status_code, 302)
+        self.assertIn("/login?next=/student/profile", anonymous.headers["Location"])
+
+        self.assertEqual(self.register("profile-page@example.com", "student").status_code, 201)
+        self.login("profile-page@example.com")
+        profile = self.client.get("/student/profile")
+        self.assertEqual(profile.status_code, 200)
+        self.assertIn('id="profileForm"', profile.get_data(as_text=True))
+        jobs = self.client.get("/jobs").get_data(as_text=True)
+        self.assertNotIn('id="profileForm"', jobs)
+        self.assertNotIn('id="applicationList"', jobs)
+
+        self.client.post("/api/auth/logout")
+        self.assertEqual(self.register("profile-business@example.com", "business").status_code, 201)
+        self.login("profile-business@example.com")
+        business = self.client.get("/student/profile")
+        self.assertEqual(business.status_code, 302)
+        self.assertTrue(business.headers["Location"].endswith("/business/dashboard"))
+
+        self.client.post("/api/auth/logout")
+        self.login("admin@example.com", "admin123")
+        admin = self.client.get("/student/profile")
+        self.assertEqual(admin.status_code, 302)
+        self.assertTrue(admin.headers["Location"].endswith("/admin/"))
+
+    def test_public_page_exposes_separate_business_and_admin_entrypoints(self):
+        home = self.client.get("/").get_data(as_text=True)
+        self.assertIn('href="/business/login"', home)
+        self.assertIn("Dành cho nhà tuyển dụng", home)
+        self.assertLess(home.index("</nav>"), home.index("employer-cta"))
+        self.assertNotIn('id="studentLink"', home)
+        self.assertIn('href="/admin/login"', home)
+        login = self.client.get("/login").get_data(as_text=True)
+        self.assertIn('href="/business/login"', login)
+        self.assertIn('href="/admin/login"', login)
+
+    def test_logout_clears_session(self):
+        self.assertEqual(self.register("logout@example.com", "student").status_code, 201)
+        self.assertEqual(self.login("logout@example.com").status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me").status_code, 200)
+
+        response = self.client.post("/api/auth/logout")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me").status_code, 401)
+        self.assertEqual(self.client.get("/dashboard").status_code, 302)
+
     def test_student_profile_and_application_flow(self):
         self.assertEqual(self.register("student@example.com", "student").status_code, 201)
         self.login("student@example.com")
@@ -131,6 +203,31 @@ class CareerConnectAPITestCase(unittest.TestCase):
         self.login("student@example.com")
         response = self.client.get("/api/admin/users")
         self.assertEqual(response.status_code, 403)
+
+    def test_staff_dashboard_summary_requires_staff_and_returns_real_counts(self):
+        # Anonymous users cannot read staff dashboard data.
+        anonymous = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(anonymous.status_code, 401)
+
+        # A student account cannot read staff dashboard data.
+        self.assertEqual(self.register("dashboard-student@example.com", "student").status_code, 201)
+        self.login("dashboard-student@example.com")
+        forbidden = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(forbidden.status_code, 403)
+
+        # Admin can read aggregate metrics from the test database.
+        self.client.post("/api/auth/logout")
+        self.login("admin@example.com", "admin123")
+        response = self.client.get("/api/admin/dashboard/summary")
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["role"], "admin")
+        self.assertEqual(payload["stats"]["active_users"], 2)
+        self.assertEqual(payload["stats"]["active_students"], 1)
+        self.assertEqual(payload["stats"]["companies_pending"], 0)
+        self.assertEqual(payload["stats"]["jobs_pending"], 0)
+        self.assertEqual(payload["stats"]["applications_total"], 0)
+        self.assertEqual(payload["recent_reviews"], [])
 
     def test_job_list_is_empty_without_approved_job(self):
         self.assertEqual(self.client.get("/api/jobs").status_code, 200)

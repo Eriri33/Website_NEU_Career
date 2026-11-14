@@ -1,0 +1,100 @@
+{% extends "business/base.html" %}
+{% block title %}{{ 'Sửa tin tuyển dụng' if mode == 'edit' else 'Đăng tin mới' }}{% endblock %}
+{% block heading %}{{ 'Sửa tin tuyển dụng' if mode == 'edit' else 'Đăng tin tuyển dụng' }}{% endblock %}
+{% block actions %}{% endblock %}
+{% block content %}
+<a class="back" href="{% if mode == 'edit' %}{{ url_for('business_ui.job_detail', job_id=job_id) }}{% else %}{{ url_for('business_ui.jobs') }}{% endif %}"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-chevron-left"/></svg>{{ 'Về chi tiết tin' if mode == 'edit' else 'Về danh sách tin' }}</a>
+<div id="formNotice"></div>
+<div id="formLoadError" hidden></div>
+<form class="form-layout" id="jobForm" novalidate hidden>
+  <div class="stack">
+    <section class="card card-pad">
+      <h2 class="section-title">Thông tin công việc</h2>
+      <div class="stack">
+        <div class="field" data-field="title"><label for="title">Chức danh tuyển dụng<span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="title" maxlength="150" placeholder="Ví dụ: Thực tập sinh Kế toán" required>
+          <div class="counter"><span id="titleCount">0</span>/150</div><div class="err" role="alert"></div></div>
+        <div class="grid-2">
+          <div class="field" data-field="category_id"><label for="category_id">Danh mục nghề</label><select class="select" id="category_id"><option value="">Chưa phân loại</option></select><div class="err" role="alert"></div></div>
+          <div class="field" data-field="job_type"><label for="job_type">Loại công việc</label><select class="select" id="job_type">
+            <option value="internship">Thực tập</option><option value="full_time">Toàn thời gian</option><option value="part_time">Bán thời gian</option><option value="contract">Hợp đồng</option></select></div>
+        </div>
+        <div class="field" data-field="major_required"><label for="major_required">Ngành học phù hợp</label>
+          <div class="major-picker" id="majorPicker">
+            <div class="major-picker-control">
+              <input class="input" id="major_required" maxlength="255" placeholder="Tìm hoặc nhập ngành học"
+                role="combobox" aria-autocomplete="list" aria-expanded="false"
+                aria-controls="majorOptions" aria-haspopup="listbox" autocomplete="off">
+              <button class="major-picker-toggle" id="majorToggle" type="button"
+                aria-label="Hiện danh sách ngành học" aria-expanded="false" aria-controls="majorDropdown">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+              </button>
+            </div>
+            <div class="major-dropdown" id="majorDropdown" hidden>
+              <div class="major-dropdown-heading"><span>Ngành học gợi ý</span><span class="major-count" id="majorCount"></span></div>
+              <div class="major-options" id="majorOptions" role="listbox" aria-label="Ngành học phù hợp"></div>
+              <div class="major-empty" id="majorEmpty" hidden>Không có ngành phù hợp. Bạn có thể giữ nội dung đã nhập.</div>
+              <div class="major-dropdown-foot"><span aria-hidden="true">↵</span> Chọn ngành <span class="major-foot-separator">·</span> Có thể nhập ngành khác</div>
+            </div>
+          </div>
+          <span class="hint">Gợi ý để chọn nhanh; bạn có thể nhập ngành khác. Tin để trống ngành vẫn hiển thị cho mọi sinh viên.</span></div>
+        <div class="field" data-field="skills_required"><label for="skillInput">Kỹ năng yêu cầu</label>
+          <div class="tags-input" id="skillsBox"><input id="skillInput" placeholder="Nhập kỹ năng rồi nhấn Enter hoặc dấu phẩy"></div>
+          <span class="hint">Ví dụ: Excel, SQL, Giao tiếp. Tối đa 500 ký tự.</span><div class="err" role="alert"></div></div>
+      </div>
+    </section>
+
+    <section class="card card-pad">
+      <h2 class="section-title">Địa điểm và lịch làm việc</h2>
+      <div class="stack">
+        <div id="locationBlock" class="stack">
+          <div class="grid-2">
+            <div class="field"><label for="province">Tỉnh/thành phố</label><select class="select" id="province"><option value="">Chọn tỉnh/thành phố</option></select></div>
+            <div class="field"><label for="ward">Phường/xã</label><select class="select" id="ward" disabled><option value="">Chọn tỉnh/thành trước</option></select></div>
+          </div>
+          <div class="field"><label for="address_detail">Địa chỉ cụ thể</label><input class="input" id="address_detail" maxlength="150" placeholder="Số nhà, tên đường, tòa nhà"><span class="hint" id="locationHint">Sinh viên lọc việc theo tỉnh/thành, nên hãy chọn để tin dễ được tìm thấy.</span></div>
+        </div>
+        <div class="field" data-field="location"><div class="err" role="alert"></div></div>
+        <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="font-weight:600;font-size:13.5px;padding:0;margin-bottom:6px">Làm việc thứ Bảy</legend>
+          <div class="radio-row" id="saturdayRow">
+            <label><input type="radio" name="saturday_policy" value="unknown" checked>Chưa nêu rõ</label>
+            <label><input type="radio" name="saturday_policy" value="off">Nghỉ thứ Bảy</label>
+            <label><input type="radio" name="saturday_policy" value="working">Làm thứ Bảy</label>
+            <label><input type="radio" name="saturday_policy" value="negotiable">Thỏa thuận</label>
+          </div></fieldset>
+      </div>
+    </section>
+
+    <section class="card card-pad">
+      <h2 class="section-title">Quyền lợi và hạn nộp</h2>
+      <div class="grid-2">
+        <div class="field" data-field="salary_text"><label for="salary_text">Mức lương</label><input class="input" id="salary_text" maxlength="100" placeholder="Thỏa thuận"><span class="hint">Nhập đúng nội dung muốn hiển thị, ví dụ “5 - 7 triệu”. Để trống sẽ hiển thị “Thỏa thuận”.</span><div class="err" role="alert"></div></div>
+        <div class="field" data-field="deadline"><label for="deadline">Hạn nộp hồ sơ</label><input class="input" id="deadline" type="date"><span class="hint">Để trống nếu nhận hồ sơ không giới hạn.</span><div class="err" role="alert"></div></div>
+      </div>
+    </section>
+
+    <section class="card card-pad">
+      <h2 class="section-title">Mô tả công việc<span class="req" style="color:var(--neu-red)" aria-hidden="true"> *</span></h2>
+      <div class="field" data-field="description"><label for="description" class="sr-only">Mô tả công việc</label>
+        <textarea class="textarea" id="description" style="min-height:240px" maxlength="10000" placeholder="Nhiệm vụ chính, yêu cầu, quyền lợi, quy trình phỏng vấn…" required></textarea>
+        <div class="counter"><span id="descCount">0</span>/10000</div><div class="err" role="alert"></div></div>
+    </section>
+  </div>
+
+  <aside class="aside-sticky" aria-label="Quy trình đăng tin">
+    <section class="card card-pad">
+      <h2 class="section-title">Sau khi gửi</h2>
+      <ol class="steps">
+        <li><b>Nhà trường kiểm duyệt</b>Tin ở trạng thái “Chờ duyệt” và chưa hiển thị với sinh viên.</li>
+        <li><b>Tin được hiển thị</b>Sinh viên tìm thấy và ứng tuyển cho đến hết hạn nộp.</li>
+        <li><b>Bạn xử lý hồ sơ</b>Xem hồ sơ và cập nhật trạng thái trong mục Ứng viên.</li>
+      </ol>
+    </section>
+    <div class="card card-pad stack">
+      <button class="btn btn-primary btn-block" type="submit" id="btnSubmit">Gửi duyệt tin</button>
+      <a class="btn btn-ghost btn-block" id="btnCancel" href="{{ url_for('business_ui.jobs') }}">Hủy</a>
+    </div>
+  </aside>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/business/job_form.js') }}"></script>{% endblock %}
